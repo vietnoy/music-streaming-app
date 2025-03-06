@@ -19,7 +19,10 @@ cd music-streaming-app
 ```
 ### 2️⃣ Create a Python Virtual Environment
 ```bash
-python3 -m venv venv
+cd backend
+```
+```bash
+python -m venv venv
 source venv/bin/activate  # For Mac/Linux
 venv\Scripts\activate  # For Windows
 ```
@@ -27,8 +30,9 @@ venv\Scripts\activate  # For Windows
 pip install -r requirements.txt
 ```
 ### 3️⃣ Run Docker Containers (PostgreSQL, Backend, Frontend)
+Return to the main directory
 ```bash
-docker-compose up -d
+docker compose up --build
 ```
 This will start:
 
@@ -45,7 +49,7 @@ Then add:
 POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
 POSTGRES_HOST=your_host
-POSTGRES_PORT=5432
+POSTGRES_PORT=your_port
 POSTGRES_DATABASE=your_database
 POSTGRES_TABLE=your_table
 ```
