@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import '../css/style.css';
+import '../../css/style.css';
 
 const PlaylistGrid = () => {
   const [playlists, setPlaylists] = useState([]);

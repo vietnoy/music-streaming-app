@@ -9,7 +9,7 @@ function App() {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Home />} />
+                <Route path="/*" element={<Home />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/signin" element={<Signin />} />
                 <Route path="/signup" element={<Signup />} />
@@ -19,3 +19,20 @@ function App() {
 }
 
 export default App;
+
+// import React from "react";
+// import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// import Home from "./pages/Home";
+
+// function App() {
+//   return (
+//     <Router>
+//       <Routes>
+//         <Route path="/*" element={<Home />} />
+//       </Routes>
+//     </Router>
+//   );
+// }
+
+// export default App;
+
