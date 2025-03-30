@@ -1,7 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import '../css/style.css';
+import '../../css/style.css';
+import { Link } from 'react-router-dom';
+import { FaPlay } from "react-icons/fa";
 
-const PlaylistScroll = ({ setCurrentSong ,customClass}) => {
+
+const PlaylistScroll = ({ setCurrentSong, setCurrentSongView ,customClass}) => {
   const [playlists, setPlaylists] = useState([]);
   const scrollContainerRef = useRef(null);
 
@@ -34,21 +37,38 @@ const PlaylistScroll = ({ setCurrentSong ,customClass}) => {
       <button className="scroll-btn left-btn" onClick={scrollLeft}>←</button>
       <div className="scroll-container" ref={scrollContainerRef}>
         {playlists.map((playlist, index) => (
-          <div 
-          key={index} 
-          className="playlist-item" 
-          onClick={() => setCurrentSong({
-            song: playlist.song,
-            artist: playlist.artist,
-            image: playlist.image
-          })}
-          >
-            <img src={playlist.image} alt={playlist.song} />
-            <div className="text-content">
-              <span className="playlist-title">{playlist.song}</span>
-              <span className="playlist-description">{playlist.artist}</span>
+          <Link to="/song">
+            <div 
+            key={index} 
+            className="playlist-item" 
+            onClick={() => setCurrentSongView({
+              song: playlist.song,
+              artist: playlist.artist,
+              image: playlist.image
+            })}
+            >
+              <div className='image-container'>
+                <img src={playlist.image} alt={playlist.song} className="playlist-image" />
+                <FaPlay 
+                  className="play-icon"
+                  onClick={(event) => {
+                    event.preventDefault(); 
+                    event.stopPropagation(); 
+                    setCurrentSong({
+                      song: playlist.song,
+                      artist: playlist.artist,
+                      image: playlist.image
+                    });
+                  }}
+                />
+
+              </div>
+              <div className="text-content">  
+                <span className="playlist-title">{playlist.song}</span>
+                <span className="playlist-description">{playlist.artist}</span>
+              </div>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
       <button className="scroll-btn right-btn" onClick={scrollRight}>→</button>
