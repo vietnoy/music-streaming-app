@@ -1,0 +1,81 @@
+[2025-04-01T17:25:49.699+0000] {processor.py:157} INFO - Started process (PID=75) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:25:49.700+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:25:49.701+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:49.700+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:25:49.748+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:25:49.961+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:49.961+0000] {manager.py:499} INFO - Created Permission View: %s
+[2025-04-01T17:25:50.028+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:50.028+0000] {manager.py:499} INFO - Created Permission View: %s
+[2025-04-01T17:25:50.153+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:50.153+0000] {manager.py:499} INFO - Created Permission View: %s
+[2025-04-01T17:25:50.154+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:50.154+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:25:50.175+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:50.174+0000] {dag.py:2963} INFO - Creating ORM DAG for fetch_song_workflow
+[2025-04-01T17:25:50.188+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:25:50.188+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:25:50.298+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.601 seconds
+[2025-04-01T17:26:20.883+0000] {processor.py:157} INFO - Started process (PID=99) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:26:20.897+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:26:20.910+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:26:20.901+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:26:21.126+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:26:21.274+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:26:21.274+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:26:21.372+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:26:21.371+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:26:21.466+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.618 seconds
+[2025-04-01T17:26:52.108+0000] {processor.py:157} INFO - Started process (PID=100) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:26:52.109+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:26:52.110+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:26:52.109+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:26:52.127+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:26:52.191+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:26:52.191+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:26:52.213+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:26:52.213+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:26:52.283+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.178 seconds
+[2025-04-01T17:27:23.393+0000] {processor.py:157} INFO - Started process (PID=101) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:27:23.394+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:27:23.399+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:27:23.395+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:27:23.422+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:27:23.466+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:27:23.466+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:27:23.497+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:27:23.496+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:27:23.547+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.155 seconds
+[2025-04-01T17:27:54.055+0000] {processor.py:157} INFO - Started process (PID=105) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:27:54.056+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:27:54.062+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:27:54.057+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:27:54.092+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:27:54.132+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:27:54.132+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:27:54.155+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:27:54.155+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:27:54.214+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.161 seconds
+[2025-04-01T17:29:46.065+0000] {processor.py:157} INFO - Started process (PID=108) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:31:25.629+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:31:26.849+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:31:26.018+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:31:31.404+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:31:33.562+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:31:33.562+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:31:34.775+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:31:34.768+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:31:35.266+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 119.317 seconds
+[2025-04-01T17:32:05.780+0000] {processor.py:157} INFO - Started process (PID=113) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:32:05.782+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:32:05.783+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:32:05.782+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:32:05.800+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:32:05.821+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:32:05.821+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:32:05.852+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:32:05.852+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:32:05.903+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.149 seconds
+[2025-04-01T17:32:36.119+0000] {processor.py:157} INFO - Started process (PID=114) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:32:36.120+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:32:36.121+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:32:36.121+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:32:36.139+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:32:36.160+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:32:36.160+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:32:36.182+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:32:36.182+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:32:36.312+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.194 seconds
+[2025-04-01T17:33:30.420+0000] {processor.py:157} INFO - Started process (PID=69) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:33:30.421+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:33:30.422+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:33:30.422+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:33:30.437+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:33:30.448+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:33:30.447+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:33:30.469+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:33:30.469+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:33:30.530+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.111 seconds
+[2025-04-01T17:34:01.109+0000] {processor.py:157} INFO - Started process (PID=77) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:34:01.114+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:34:01.127+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:34:01.120+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:34:01.335+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:34:01.592+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:34:01.592+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:34:01.748+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:34:01.748+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:34:02.475+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 1.404 seconds
+[2025-04-01T17:34:32.747+0000] {processor.py:157} INFO - Started process (PID=78) to work on /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:34:32.748+0000] {processor.py:829} INFO - Processing file /opt/airflow/dags/fetch_songs_workflow.py for tasks to queue
+[2025-04-01T17:34:32.749+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:34:32.748+0000] {dagbag.py:536} INFO - Filling up the DagBag from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:34:32.764+0000] {processor.py:839} INFO - DAG(s) dict_keys(['fetch_song_workflow']) retrieved from /opt/airflow/dags/fetch_songs_workflow.py
+[2025-04-01T17:34:32.787+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:34:32.787+0000] {dag.py:2941} INFO - Sync 1 DAGs
+[2025-04-01T17:34:32.808+0000] {logging_mixin.py:151} INFO - [2025-04-01T17:34:32.808+0000] {dag.py:3722} INFO - Setting next_dagrun for fetch_song_workflow to 2025-03-31T00:00:00+00:00, run_after=2025-04-01T00:00:00+00:00
+[2025-04-01T17:34:32.864+0000] {processor.py:179} INFO - Processing /opt/airflow/dags/fetch_songs_workflow.py took 0.119 seconds

@@ -2,6 +2,33 @@ import React, { useState } from "react";
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import "../css/signup.css";
+import { components } from 'react-select';
+
+const DropdownIndicator = (props) => {
+  const { menuIsOpen } = props.selectProps;
+  return (
+    <components.DropdownIndicator {...props}>
+      <span
+        style={{
+          display: "inline-block",
+          transform: menuIsOpen ? "rotate(180deg)" : "rotate(0deg)",
+          transition: "transform 0.3s ease",
+        }}
+      >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path d="M7 10l5 5 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+      </span>
+    </components.DropdownIndicator>
+  );
+};
+
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -79,7 +106,10 @@ const Signup = () => {
 
           <Select
             options={genderOptions}
+            classNamePrefix="react-select"
             defaultValue={genderOptions[0]}
+            components={{ DropdownIndicator }}
+            isSearchable={false}
             onChange={(selectedOption) =>
               setFormData({ ...formData, gender: selectedOption.value })
             }
@@ -88,64 +118,58 @@ const Signup = () => {
               control: (base, state) => ({
                 ...base,
                 backgroundColor: "#2a2a2a",
-                border: "none",
                 borderRadius: "6px",
-                padding: "4px 10px",
-                boxShadow: state.isFocused ? "0 0 0 2px #1db95455" : "none",
+                border: "none",
+                boxShadow: "none",
                 width: "90%",
                 margin: "20px auto 0 auto",
                 fontSize: "15px",
                 color: "white",
                 cursor: "pointer",
-                transition: "all",
-                transitionDuration: "0.2s",
-                transitionTimingFunction: "ease-in-out"
+                transition: "all 0.3s ease-in-out",
               }),
-              indicatorSeparator: () => ({
-                display: "none", // removes that white vertical line!
+              indicatorSeparator: (base) => ({
+                ...base,
+                display: "none",
               }),
               dropdownIndicator: (base) => ({
                 ...base,
                 color: "#ccc",
                 "&:hover": {
-                  color: "#1DB954",
+                  color: "#ccc",
                 },
               }),
               singleValue: (base) => ({
                 ...base,
                 color: "white",
               }),
-              placeholder: (base) => ({
-                ...base,
-                color: "#b3b3b3",
-                width: "100%",
-                textAlign: "left",
-              }),
               // Each option style
               option: (base, state) => ({
                 ...base,
                 padding: "12px 20px",
                 backgroundColor: state.isSelected
-                  ? "#1DB954"
+                  ? "#7a7878"
                   : state.isFocused
                   ? "#333"
                   : "transparent",
+                borderRadius: "10px",
                 color: "white",
                 fontWeight: "bold",
                 cursor: "pointer",
-                transition: "background 0.2s ease-in-out",
+                transition: "background 0.3s ease-in-out",
               }),
               // Dropdown container
               menu: (base) => ({
                 ...base,
-                backgroundColor: "#181818", // Dark background
+                backgroundColor: "#181818",
                 borderRadius: "10px",
                 boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
                 padding: "4px 0",
                 marginTop: "8px",
-                left: "5%",
+                left: "50%",  
+                transform: "translateX(-50%)",
                 width: "90%",
-                zIndex: 99, // Prevent overlap issues
+                zIndex: 99,
               }),
 
               // Option list inside the dropdown

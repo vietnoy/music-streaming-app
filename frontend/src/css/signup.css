@@ -11,8 +11,8 @@
   
   .checkbox-label input {
     all: unset;
-    width: 16px;
-    height: 16px;
+    width: 11px;
+    height: 11px;
     border: 2px solid white;
     border-radius: 50%;
     cursor: pointer;
@@ -38,6 +38,10 @@
     box-sizing: border-box;
     font-family: 'Inter', 'Helvetica Neue', sans-serif;
   }
+
+  input:focus {
+    outline: none;
+  }
   
   input[type="date"] {
     cursor: pointer;
@@ -46,4 +50,27 @@
   input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
+  }
+  /* Custom scrollbar for react-select dropdown */
+  .react-select__menu-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .react-select__menu-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .react-select__menu-list::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 3px;
+  }
+
+  /* Optional for Firefox */
+  .react-select__menu-list {
+    scrollbar-color: #555 transparent;
+    scrollbar-width: thin;
+  }
+
+  .react-select__indicator-separator {
+    display: none !important;
   }
