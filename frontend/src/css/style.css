@@ -49,6 +49,11 @@ nav{
     border-radius: 50%;
     border: 1px solid #faf9f9;
   }
+
+  .home-icon:hover{
+    background-color: #34463a;
+    transform: scale(1.1);
+  }
   
   .input-container {
   position: relative;
@@ -245,11 +250,11 @@ nav{
     display: inline-block;
   }
 
-  .play-icon {
+  .playlist-item .play-icon {
     position: absolute;
-    bottom: 20px; /* Đặt icon ở góc dưới */
-    right: 20px;  /* Căn phải */
-    font-size: 24px;
+    bottom: 20px; 
+    right: 20px;  
+    font-size: 16px;
     color: white;
     background: green;
     padding: 10px;
@@ -257,8 +262,14 @@ nav{
     opacity: 0; /* Ẩn icon ban đầu */
     transition: opacity 0.3s ease-in-out;
   }
+
+  .playlist-item .play-icon:hover {
+    background: rgb(2, 80, 2);
+    transform: scale(1.2);
+    transition: transform 0.3s ease-in-out;
+  }
   
-  .image-container:hover .play-icon {
+  .playlist-item .image-container:hover .play-icon {
     opacity: 1; /* Hiển thị icon khi hover vào ảnh */
   }
   
@@ -399,6 +410,34 @@ nav{
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     margin: 0px;
   }
+
+  .song-controls {
+    height: 80px;
+    display: flex;
+    background-color: #555;
+    gap: 30px;
+  }
+
+  .song-controls .play-icon {
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-size: 20px;
+    /* padding: 10px; */
+    margin: 10px;
+    margin-left: 40px;  
+    aspect-ratio: 1 / 1;
+    border-radius: 50%; 
+    background-color: #1DB954;
+    cursor: pointer; 
+}
+  .song-controls .play-icon:hover{
+    background-color: #3d8355;
+    transform: scale(1.1);
+  }
+
+
+
 
   /* ----------------------------------------------------*/
 
