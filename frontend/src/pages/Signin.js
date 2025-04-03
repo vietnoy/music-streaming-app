@@ -1,54 +1,83 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../css/style.css"; // Ensure you have this CSS file
+import "../css/signin.css";
 
-const Signin = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+const SignIn = () => {
+  const [formData, setFormData] = useState({
+    identifier: "",
+    password: ""
+  });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
-      setError("Both fields are required");
-      return;
-    }
+    setError("");
 
-    // Dummy authentication check
-    if (formData.email === "test@example.com" && formData.password === "password") {
-      alert("Login successful!");
-      navigate("/library"); // Redirect to Library or Home
-    } else {
-      setError("Invalid email or password");
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Sign in failed");
+      }
+
+      const userData = await response.json();
+      console.log("Signed in user:", userData);
+      alert(`Welcome, ${userData.username}!`);
+      navigate("/"); // adjust this route if needed
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
     }
   };
 
   return (
     <div className="spotify-signin">
       <div className="signin-container">
-        <h1>Sign in to Spotify</h1>
+        <h1>Sign In to Your Account</h1>
 
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit}>
-          <input type="email" name="email" placeholder="Email or username" value={formData.email} onChange={handleChange} required />
-          <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
+          <input
+            type="text"
+            name="identifier"
+            placeholder="Username or Email"
+            value={formData.identifier}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
 
           <button type="submit" className="signin-btn">Sign In</button>
         </form>
 
-        <p className="forgot-password">Forgot your password?</p>
-
         <hr className="divider" />
-
-        <p>Don't have an account? <a href="/signup" className="signup-link">Sign up for Spotify</a></p>
+        <p style={{color: "white"}}>Don't have an account? <a href="/signup" className="signup-link">Sign up here</a></p>
       </div>
     </div>
   );
 };
 
-export default Signin;
+export default SignIn;
