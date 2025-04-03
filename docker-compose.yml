@@ -7,8 +7,6 @@ services:
       - backend/.env
     volumes:
       - ./backend/music:/app/music
-    depends_on:
-      - database
 
   frontend:
     build: ./frontend
@@ -17,17 +15,23 @@ services:
     depends_on:
       - backend
 
-  database:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: musicdb
+  airflow:
+    build: ./airflow
     ports:
-      - "5432:5432"
+      - "8080:8080"
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create --username admin --password admin --firstname Air --lastname Flow --role Admin --email admin@example.com &&
+        airflow scheduler &
+        exec airflow webserver"
+    env_file:
+      - airflow/.env
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/.env:/opt/airflow/.env
+      - ./airflow/data:/opt/airflow/data
+      - ./airflow/logs:/opt/airflow/logs
 
 volumes:
   pgdata:

@@ -1,12 +1,11 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey
 from models.base import Base
 
 class Song(Base):
     __tablename__ = "songs"
 
-    track_id = Column(String, primary_key=True, index=True)
-    artists = Column(String)
-    album_name = Column(String)
+    track_id = Column(String, primary_key=True)
+    
     track_name = Column(String)
     popularity = Column(Integer)
     duration_ms = Column(Integer)
@@ -24,3 +23,6 @@ class Song(Base):
     tempo = Column(Float)
     time_signature = Column(Integer)
     track_genre = Column(String)
+    artist_id = Column(String, ForeignKey("artists.id"), primary_key=True)
+    album_id = Column(String, ForeignKey("albums.id"))
+    track_image_url = Column(String)
