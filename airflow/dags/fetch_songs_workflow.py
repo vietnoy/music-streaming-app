@@ -18,6 +18,6 @@ with DAG(
     
     fetch_song = BashOperator(
         task_id="fetch_song_workflow",
-        bash_command="source ~/venv/Scripts/activate && python data_enrich.py"
+        bash_command="cd /opt/airflow && python data_enrich.py"
     )
     fetch_song

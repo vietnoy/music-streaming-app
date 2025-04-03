@@ -14,7 +14,7 @@ pg_host = os.getenv("POSTGRES_HOST")
 pg_port = os.getenv("POSTGRES_PORT")
 pg_database = os.getenv("POSTGRES_DATABASE")
 
-engine = create_engine(f"postgresql+pg8000://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}")
+engine = create_engine(f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}?sslmode=require")
 
 def upload_csv_to_postgres(file_path: str, table_name: str, logger: Logger, if_exists: str = "append"):
     """
@@ -29,7 +29,7 @@ def upload_csv_to_postgres(file_path: str, table_name: str, logger: Logger, if_e
     try:
         df = pd.read_csv(file_path)
 
-        df.to_sql(table_name, con=conn, if_exists=if_exists, index=False)
+        df.to_sql(table_name, con=conn, if_exists='append', index=False)
         logger.info(f"[UPLOAD] {file_path} to {table_name} ({len(df)} rows)")
         trans.commit()
     except SQLAlchemyError as e:
@@ -37,3 +37,4 @@ def upload_csv_to_postgres(file_path: str, table_name: str, logger: Logger, if_e
         trans.rollback()
     finally:
         conn.close()
+        engine.dispose()
