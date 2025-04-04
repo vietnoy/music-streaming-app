@@ -1,93 +1,10 @@
 import React, { useState } from "react";
-import '../css/style.css'
+import '../css/MusicPlayer.css'
 import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp, FaRandom, FaRedo } from 'react-icons/fa';
 
 const MusicPlayer = ({ currentSong }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(50);
-
-    const styles = {
-        controls: {
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px'
-        },
-        controlButtons: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-        },
-        controlBtn: {
-            background: 'none',
-            border: 'none',
-            color: '#b3b3b3',
-            cursor: 'pointer',
-            fontSize: '14px',
-            padding: '4px',
-            transition: 'color 0.2s'
-        },
-        playBtn: {
-            color: '#fff',
-            fontSize: '24px'
-        },
-        progressBar: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            width: '100%',
-            maxWidth: '400px'
-        },
-        progress: {
-            flex: 1,
-            height: '3px',
-            background: '#404040',
-            borderRadius: '2px',
-            cursor: 'pointer'
-        },
-        progressFilled: {
-            width: '30%',
-            height: '100%',
-            background: '#1db954',
-            borderRadius: '2px'
-        },
-        timeText: {
-            color: '#b3b3b3',
-            fontSize: '10px',
-            minWidth: '30px'
-        },
-        volumeControl: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            color: '#b3b3b3'
-        },
-        volumeSlider: {
-            width: '80px',
-            height: '3px',
-            WebkitAppearance: 'none',
-            background: '#404040',
-            borderRadius: '2px',
-            cursor: 'pointer'
-        },
-        volumeSliderThumb: {
-            WebkitAppearance: 'none',
-            width: '8px',
-            height: '8px',
-            background: '#fff',
-            borderRadius: '50%',
-            cursor: 'pointer'
-        },
-        queueBtn: {
-            background: 'none',
-            border: 'none',
-            color: '#b3b3b3',
-            cursor: 'pointer',
-            fontSize: '12px',
-            padding: '4px',
-            transition: 'color 0.2s'
-        }
-    };
 
     return (
         <div className="musicPlayer">
@@ -99,35 +16,35 @@ const MusicPlayer = ({ currentSong }) => {
                 </div>
             </div>
             <div className="center">
-                <div style={styles.controls}>
-                    <div style={styles.controlButtons}>
-                        <button style={styles.controlBtn}>
+                <div className="controls">
+                    <div className="control-buttons">
+                        <button className="control-btn">
                             <FaRandom />
                         </button>
-                        <button style={styles.controlBtn}>
+                        <button className="control-btn">
                             <FaStepBackward />
                         </button>
-                        <button style={{...styles.controlBtn, ...styles.playBtn}} onClick={() => setIsPlaying(!isPlaying)}>
+                        <button className="control-btn play-btn" onClick={() => setIsPlaying(!isPlaying)}>
                             {isPlaying ? <FaPause /> : <FaPlay />}
                         </button>
-                        <button style={styles.controlBtn}>
+                        <button className="control-btn">
                             <FaStepForward />
                         </button>
-                        <button style={styles.controlBtn}>
+                        <button className="control-btn">
                             <FaRedo />
                         </button>
                     </div>
-                    <div style={styles.progressBar}>
-                        <span style={styles.timeText}>0:00</span>
-                        <div style={styles.progress}>
-                            <div style={styles.progressFilled}></div>
+                    <div className="progress-bar">
+                        <span className="time-text">0:00</span>
+                        <div className="progress">
+                            <div className="progress-filled"></div>
                         </div>
-                        <span style={styles.timeText}>0:00</span>
+                        <span className="time-text">0:00</span>
                     </div>
                 </div>
             </div>
             <div className="right">
-                <div style={styles.volumeControl}>
+                <div className="volume-control">
                     <FaVolumeUp />
                     <input 
                         type="range" 
@@ -135,11 +52,13 @@ const MusicPlayer = ({ currentSong }) => {
                         max="100" 
                         value={volume}
                         onChange={(e) => setVolume(e.target.value)}
-                        style={styles.volumeSlider}
+                        className="volume-slider"
                     />
                 </div>
-                <button style={styles.queueBtn}>Queue</button>
-                <button style={styles.queueBtn}>Devices</button>
+                <div>
+                    <button className="queue-btn">Queue</button>
+                    <button className="queue-btn">Devices</button>
+                </div>
             </div>
         </div>
     );

@@ -25,7 +25,7 @@
     background-color: #1DB954;
   }
   
-  input {
+  input:not(.search) {
     width: 90%;
     padding: 12px 14px;
     background-color: #2a2a2a;
