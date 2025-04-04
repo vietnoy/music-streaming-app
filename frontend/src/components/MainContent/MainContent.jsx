@@ -4,7 +4,8 @@ import PlaylistGrid from "./PlaylistGrid";
 import PlaylistScroll from "./PlaylistScroll";
 import MusicCollection from "./MusicCollection";
 import { Route, Routes } from "react-router-dom";
-import SongHeader from "../SongDetail/SongHeader";
+import SongDetail from "../SongDetail/SongDetail";
+import ArtistScroll from "./Artist";
 
 
 const Content = ({ setCurrentSong, setCurrentSongView }) =>{
@@ -17,7 +18,7 @@ const Content = ({ setCurrentSong, setCurrentSongView }) =>{
         <h1>Part3</h1>
         <PlaylistScroll setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView} customClass="song" />
         <h1>Part4</h1>
-        <PlaylistScroll setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView} customClass="artist" />
+        <ArtistScroll setCurrentSongView={setCurrentSongView} customClass="artist" />
       </div>
     );
 };
@@ -32,7 +33,7 @@ const MainContent = ({ currentSongView, setCurrentSong, setCurrentSongView }) =>
                 <Nav />
                 <MusicCollection setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView}/>
             </>} /> 
-            <Route path="/song" element={<SongHeader currentSongView={currentSongView}/>} />
+            <Route path="/song" element={<SongDetail currentSongView={currentSongView} setCurrentSong={setCurrentSong}/>} />
         </Routes>
     );
 };

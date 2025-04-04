@@ -11,7 +11,11 @@ const Home = () => {
     image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg",
   });
 
-  const [currentSongView, setCurrentSongView] = useState([]);
+  const [currentSongView, setCurrentSongView] = useState({
+    song: "No song playing",
+    artist: "",
+    image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg",
+  });
 
   return (
     <div className="home_style">

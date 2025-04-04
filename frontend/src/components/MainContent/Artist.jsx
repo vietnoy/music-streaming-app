@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import '../../css/style.css';
 import { Link } from 'react-router-dom';
-import { FaPlay } from "react-icons/fa";
 
 
-const PlaylistScroll = ({ setCurrentSong, setCurrentSongView ,customClass}) => {
+const ArtistScroll = ({setCurrentSongView ,customClass}) => {
   const [playlists, setPlaylists] = useState([]);
   const scrollContainerRef = useRef(null);
 
@@ -49,20 +48,6 @@ const PlaylistScroll = ({ setCurrentSong, setCurrentSongView ,customClass}) => {
             >
               <div className='image-container'>
                 <img src={playlist.image} alt={playlist.song} className="playlist-image" />
-                <div className="play-icon">
-                  <FaPlay 
-                    onClick={(event) => {
-                      event.preventDefault(); 
-                      event.stopPropagation(); 
-                      setCurrentSong({
-                        song: playlist.song,
-                        artist: playlist.artist,
-                        image: playlist.image
-                      });
-                    }}
-                  />
-                </div>
-
               </div>
               <div className="text-content">  
                 <span className="playlist-title">{playlist.song}</span>
@@ -77,4 +62,4 @@ const PlaylistScroll = ({ setCurrentSong, setCurrentSongView ,customClass}) => {
   );
 };
 
-export default PlaylistScroll;
+export default ArtistScroll;
