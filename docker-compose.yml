@@ -30,8 +30,9 @@ services:
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./airflow/.env:/opt/airflow/.env
-      - ./airflow/data:/opt/airflow/data
       - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/progress.json:/opt/airflow/progress.json
+      - ./airflow/data:/opt/airflow/data
 
 volumes:
   pgdata:

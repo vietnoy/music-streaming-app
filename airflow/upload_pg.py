@@ -16,24 +16,19 @@ pg_database = os.getenv("POSTGRES_DATABASE")
 
 engine = create_engine(f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}?sslmode=require")
 
-def upload_csv_to_postgres(file_path: str, table_name: str, logger: Logger, if_exists: str = "append"):
+def upload_to_postgres(df: pd.DataFrame, table_name: str, logger: Logger):
     """
-    Upload a CSV file to a PostgreSQL table using SQLAlchemy with pg8000.
+    Upload a dataframe to a PostgreSQL table using SQLAlchemy with pg8000.
     """
     conn = engine.connect()
-    if not os.path.exists(file_path):
-        logger.warning(f"[SKIP] {file_path} not found.")
-        return
     trans = conn.begin()
 
     try:
-        df = pd.read_csv(file_path)
-
         df.to_sql(table_name, con=conn, if_exists='append', index=False)
-        logger.info(f"[UPLOAD] {file_path} to {table_name} ({len(df)} rows)")
+        logger.info(f"[UPLOAD] to {table_name} ({len(df)} rows)")
         trans.commit()
     except SQLAlchemyError as e:
-        logger.error(f"[ERROR] Upload failed for {file_path}: {e}")
+        logger.error(f"[ERROR] Upload failed: {e}")
         trans.rollback()
     finally:
         conn.close()

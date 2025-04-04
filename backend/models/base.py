@@ -14,7 +14,7 @@ pg_port = os.getenv("POSTGRES_PORT")
 pg_database = os.getenv("POSTGRES_DATABASE")
 
 
-database_url = f"postgresql+pg8000://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
+database_url = f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
 
 engine = create_engine(database_url)
 

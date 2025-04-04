@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, ForeignKey
 from models.base import Base
 
 class Album(Base):
