@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import '../css/MusicPlayer.css'
 import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp, FaRandom, FaRedo } from 'react-icons/fa';
+import { HiOutlineQueueList } from "react-icons/hi2";
+import { MdDevices } from "react-icons/md";
 
 const MusicPlayer = ({ currentSong }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -45,7 +47,7 @@ const MusicPlayer = ({ currentSong }) => {
             </div>
             <div className="right">
                 <div className="volume-control">
-                    <FaVolumeUp />
+                    <FaVolumeUp  size={20}/>
                     <input 
                         type="range" 
                         min="0" 
@@ -56,8 +58,8 @@ const MusicPlayer = ({ currentSong }) => {
                     />
                 </div>
                 <div>
-                    <button className="queue-btn">Queue</button>
-                    <button className="queue-btn">Devices</button>
+                    <button className="queue-btn"><HiOutlineQueueList size={20} /></button>
+                    <button className="queue-btn"><MdDevices size={20} /></button>
                 </div>
             </div>
         </div>

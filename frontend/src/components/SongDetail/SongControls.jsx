@@ -1,6 +1,7 @@
 import React from "react";
 import '../../css/style.css';
 import { FaPlay } from "react-icons/fa";
+import { FiPlusCircle } from "react-icons/fi";
 
 const SongControls = ({ currentSongView ,setCurrentSong }) => {
     return (
@@ -15,6 +16,9 @@ const SongControls = ({ currentSongView ,setCurrentSong }) => {
                     });
                 }}
                 />
+            </div>
+            <div className="plus-icon">
+                <FiPlusCircle />
             </div>
         </div>
     );
