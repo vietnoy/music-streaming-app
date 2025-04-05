@@ -85,8 +85,8 @@
 }
 
 .musicPlayer .control-btn:hover {
-    color: #fff;
-    transform: scale(1.04);
+    /* color: #fff; */
+    transform: scale(1.1);
 }
 
 .musicPlayer .play-btn {
@@ -160,7 +160,7 @@
     max-width: 30%;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: right;
     gap: 16px;
 }
 
@@ -175,7 +175,8 @@
     color: #a7a7a7;
     font-size: 16px;
     display: flex;
-    align-items: center;
+    /* align-items: center; */
+    /* justify-content: center; */
 }
 
 .musicPlayer .volume-slider {

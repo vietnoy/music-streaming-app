@@ -1,6 +1,7 @@
 import React from 'react';
 import SongHeader from './SongHeader';
 import SongControls from './SongControls';
+import SongList from './SongList';
 
 
 const SongDetail = ({ currentSongView, setCurrentSong}) => {
@@ -8,6 +9,7 @@ const SongDetail = ({ currentSongView, setCurrentSong}) => {
       <div>
         <SongHeader currentSongView={currentSongView}/>
         <SongControls currentSongView={currentSongView} setCurrentSong={setCurrentSong}/>
+        <SongList currentSongView={currentSongView} setCurrentSong={setCurrentSong}/>
       </div>
   );
 };
