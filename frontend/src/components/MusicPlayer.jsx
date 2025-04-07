@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState } from "react";
 import '../css/MusicPlayer.css'
 import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp, FaRandom, FaRedo } from 'react-icons/fa';
@@ -66,4 +67,36 @@ const MusicPlayer = ({ currentSong }) => {
     );
 }
 
+=======
+import React from "react";
+import "../styles/MusicPlayer.css";
+import { FaPlay, FaPause } from "react-icons/fa";
+
+const MusicPlayer = ({ currentSong }) => {
+  return (
+    <div className="music-player">
+      <div className="player-left">
+        <img src={currentSong.image} alt="cover" />
+        <div className="song-info">
+          <p className="title">{currentSong.song}</p>
+          <p className="artist">{currentSong.artist}</p>
+        </div>
+      </div>
+
+      <div className="player-center">
+        <button className="play-button">
+          <FaPlay />
+          <FaPause />
+        </button>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: "10%" }}></div>
+        </div>
+      </div>
+
+      <div className="player-right">{/* Optional: volume, queue, etc */}</div>
+    </div>
+  );
+};
+
+>>>>>>> Stashed changes
 export default MusicPlayer;

@@ -1,29 +1,24 @@
-import React from 'react';
-import { FaSpotify, FaSearch, FaUserCircle } from 'react-icons/fa';
-import { CiHome } from "react-icons/ci";
-import '../css/style.css';
-import { Link } from 'react-router-dom';
+import React from "react";
+import "../styles/Navbar.css";
+import {FaBell, FaUserCircle} from "react-icons/fa";
 
 const Navbar = () => {
-  // const navigate = useNavigate();
   return (
-      <div className='navbar'>
-        <FaSpotify size={30} style={{ color: 'white' }}/>
-        
-        <div className='center-group'>
-          <Link to="/" className='home-link'>
-            <CiHome size={30} className='home-icon' style={{ color: 'white' }} />
-          </Link>
-          <div className='input-container'>
-            <FaSearch className='input-icon' style={{ color: 'white' }} />
-            <input type="text" className='search' placeholder='Search...' />
-          </div>
+    <header className="navbar">
+        <div className="nav-left">
+            <img src="/spotify-logo.png" alt="Spotify" className="spotify-logo" />
         </div>
-        
-        <FaUserCircle size={30} style={{ color: 'white' }} />
-      </div>
+
+        <div className="nav-center">
+            <input type="text" className="search-input" placeholder="What do you want to play?" />
+        </div>
+
+        <div className="nav-right">
+            <FaBell className="nav-icon" />
+            <FaUserCircle className="nav-icon" />
+        </div>
+    </header>
   );
 };
-
 
 export default Navbar;

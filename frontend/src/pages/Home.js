@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import MusicPlayer from "../components/MusicPlayer";
 import Navbar from "../components/Navbar";
-import RightContent from "../components/RightContent";
+import SidebarLeft from "../components/SidebarLeft";
 import MainContent from "../components/MainContent/MainContent";
+import RightContent from "../components/RightContent";
+import MusicPlayer from "../components/MusicPlayer";
+import "../styles/MainContent/Home.css";
 
 const Home = () => {
   const [currentSong, setCurrentSong] = useState({
@@ -18,24 +20,17 @@ const Home = () => {
   });
 
   return (
-    <div className="home_style">
+    <div className="home">
       <Navbar />
-      <div className="content">
-        <div className="left-content">
-          {Array.from({ length: 30 }).map((_, index) => (
-            <p key={index}>Left Sidebar item {index + 1}</p>
-          ))}
-        </div>
-
-        <div className="center-content">
-          <MainContent currentSongView={currentSongView} setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView}/>
-        </div>
-
-        <div className="right-content">
-          <RightContent currentSong={currentSong} />
-        </div>
+      <div className="home-content">
+        <SidebarLeft />
+        <MainContent
+          currentSongView={currentSongView}
+          setCurrentSong={setCurrentSong}
+          setCurrentSongView={setCurrentSongView}
+        />
+        <RightContent currentSong={currentSong} />
       </div>
-
       <MusicPlayer currentSong={currentSong} />
     </div>
   );

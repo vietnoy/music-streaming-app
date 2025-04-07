@@ -1,41 +1,24 @@
 import React from "react";
-import Nav from './Nav';
-import PlaylistGrid from "./PlaylistGrid";
-import PlaylistScroll from "./PlaylistScroll";
-import MusicCollection from "./MusicCollection";
-import { Route, Routes } from "react-router-dom";
-import SongDetail from "../SongDetail/SongDetail";
-import ArtistScroll from "./Artist";
+import SectionScroller from "./SectionScroller";
+import "../../styles/MainContent/MainContent.css";
 
+const MainContent = ({ setCurrentSong }) => {
+  const madeForYou = [
+    { title: "Daily Mix 1", subtitle: "VALORANT, Suzy", image: "/default_cover.jpg" },
+    { title: "Daily Mix 2", subtitle: "Justin Bieber, Billie", image: "/default_cover.jpg" },
+  ];
 
-const Content = ({ setCurrentSong, setCurrentSongView }) =>{
-    return (
-        <div style={{padding: "20px"}}>
-        <h1>Part1</h1>
-        <PlaylistGrid />
-        <h1>Part2</h1>
-        <PlaylistScroll setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView} customClass="song" />
-        <h1>Part3</h1>
-        <PlaylistScroll setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView} customClass="song" />
-        <h1>Part4</h1>
-        <ArtistScroll setCurrentSongView={setCurrentSongView} customClass="artist" />
-      </div>
-    );
-};
-const MainContent = ({ currentSongView, setCurrentSong, setCurrentSongView }) => {
-    return (
-        <Routes>
-            <Route path="/" element={<>
-                <Nav />
-                <Content setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView} />
-            </>} />
-            <Route path="/music" element={<>
-                <Nav />
-                <MusicCollection setCurrentSong={setCurrentSong} setCurrentSongView={setCurrentSongView}/>
-            </>} /> 
-            <Route path="/song" element={<SongDetail currentSongView={currentSongView} setCurrentSong={setCurrentSong}/>} />
-        </Routes>
-    );
+  const jumpBackIn = [
+    { title: "Kendrick Lamar", subtitle: "This is Kendrick", image: "/default_cover.jpg" },
+    { title: "Queen", subtitle: "This is Queen", image: "/default_cover.jpg" },
+  ];
+
+  return (
+    <div className="main-content">
+      <SectionScroller title="Made For Khang Do" items={madeForYou} />
+      <SectionScroller title="Jump back in" items={jumpBackIn} />
+    </div>
+  );
 };
 
 export default MainContent;

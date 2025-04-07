@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 from upload_pg import upload_to_postgres
+from upload_pg import upload_to_postgres
 from logging.handlers import RotatingFileHandler
 
 # 1. Config paths
@@ -38,6 +39,8 @@ def sp_client() -> Spotify:
         client_id=os.getenv("SPOTIFY_CLIENT_ID"),
         client_secret=os.getenv("SPOTIFY_CLIENT_SECRET")
     ))
+
+    return sp
 
 # 5. Load last batch number
 def load_batch_number() -> int:
@@ -150,6 +153,8 @@ def upload_df_to_pg(albums: Dict, artists: Dict, songs: List, album_artists: Lis
     songs_df = pd.DataFrame(songs)
     album_artists_df = pd.DataFrame(album_artists)
 
+    songs_df = songs_df.sort_values("popularity", ascending=False)
+    songs_df = songs_df.drop_duplicates(subset=["track_id", "artist_id"], keep="first")
     songs_df = songs_df.sort_values("popularity", ascending=False)
     songs_df = songs_df.drop_duplicates(subset=["track_id", "artist_id"], keep="first")
 

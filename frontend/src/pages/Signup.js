@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Select from "react-select";
 import { useNavigate } from "react-router-dom";
-import "../css/signup.css";
+import "../styles/SignUp/SignUp.css";
 import { components } from 'react-select';
 
 const DropdownIndicator = (props) => {

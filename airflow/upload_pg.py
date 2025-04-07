@@ -18,7 +18,7 @@ engine = create_engine(f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}
 
 def upload_to_postgres(df: pd.DataFrame, table_name: str, logger: Logger):
     """
-    Upload a dataframe to a PostgreSQL table using SQLAlchemy with pg8000.
+    Upload a dataframe to a PostgreSQL table using SQLAlchemy with psycopg2.
     """
     conn = engine.connect()
     trans = conn.begin()
