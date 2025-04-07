@@ -19,6 +19,6 @@ class UserResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class UserLogin(BaseModel):
-    identifier: str  # can be email or username
+class CreateUserRequest(BaseModel):
+    username: str
     password: str
