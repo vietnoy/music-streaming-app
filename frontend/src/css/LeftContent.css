@@ -1,0 +1,42 @@
+.leftcontent {
+    background-color: #000;
+    width: 80px;
+    height: 100vh;
+  
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 12px 6px;
+    overflow-y: auto;
+  }
+  
+  .icon-lib,
+  .icon-plus {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .playlist-section {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .playlist-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .playlist-img:hover {
+    transform: scale(1.05);
+  }
+  

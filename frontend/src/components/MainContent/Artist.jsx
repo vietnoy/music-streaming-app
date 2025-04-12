@@ -36,7 +36,7 @@ const ArtistScroll = ({setCurrentSongView ,customClass}) => {
       <button className="scroll-btn left-btn" onClick={scrollLeft}>←</button>
       <div className="scroll-container" ref={scrollContainerRef}>
         {playlists.map((playlist, index) => (
-          <Link to="/song">
+          <Link to="/artist">
             <div 
             key={index} 
             className="playlist-item" 

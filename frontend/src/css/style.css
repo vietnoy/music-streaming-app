@@ -7,6 +7,10 @@
   height: 100vh;
   font-family: Arial, Helvetica, sans-serif, serif;
   }
+
+.center-content h1 {
+  margin: 0px;
+}
 /* home css */
 nav{
   padding: 20px;
@@ -99,7 +103,7 @@ nav{
   /* content */
   .content {
   display: grid;
-  grid-template-columns: 1fr 7fr 2fr; 
+  grid-template-columns: 1fr 18fr 5fr; 
   gap: 10px;
   padding: 20px;
   padding-top: 0px;

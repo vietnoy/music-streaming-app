@@ -3,6 +3,8 @@ import MusicPlayer from "../components/MusicPlayer";
 import Navbar from "../components/Navbar";
 import RightContent from "../components/RightContent";
 import MainContent from "../components/MainContent/MainContent";
+import LeftContent from "../components/LeftContent";
+
 
 const Home = () => {
   const [currentSong, setCurrentSong] = useState({
@@ -22,9 +24,7 @@ const Home = () => {
       <Navbar />
       <div className="content">
         <div className="left-content">
-          {Array.from({ length: 30 }).map((_, index) => (
-            <p key={index}>Left Sidebar item {index + 1}</p>
-          ))}
+          <LeftContent />
         </div>
 
         <div className="center-content">
