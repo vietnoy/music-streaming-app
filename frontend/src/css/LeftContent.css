@@ -11,32 +11,49 @@
     overflow-y: auto;
   }
   
-  .icon-lib,
-  .icon-plus {
+  .icon-lib
+  {
     margin: 10px 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 50%;
+    padding: 10px 10px;
+    border: 1px solid #faf9f9
+  }
+
+  .icon-lib {
+    background-color: rgb(12, 97, 48);
+  }
+
+  .icon-lib:hover{
+    transform: scale(1.1);
+    cursor: pointer;
   }
   
   .playlist-section {
     margin-top: 10px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    /* gap: 12px; */
     align-items: center;
   }
   
   .playlist-img {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    /* border-radius: 50%; */
+    border-radius: 5px;
     object-fit: cover;
     cursor: pointer;
     transition: transform 0.2s ease;
+    padding: 8px 8px;
   }
   
   .playlist-img:hover {
-    transform: scale(1.05);
+    /* transform: scale(1.05); */
+    background-color: #464444d0;
   }
+  
+
   
