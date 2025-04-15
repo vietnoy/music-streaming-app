@@ -8,7 +8,7 @@ const Navbar = () => {
   // const navigate = useNavigate();
   return (
       <div className='navbar'>
-        <FaSpotify size={30} style={{ color: 'white' }}/>
+        <FaSpotify size={30} style={{ color: 'white', marginLeft: '15px' }}/>
         
         <div className='center-group'>
           <Link to="/" className='home-link'>
@@ -20,7 +20,7 @@ const Navbar = () => {
           </div>
         </div>
         
-        <FaUserCircle size={30} style={{ color: 'white' }} />
+        <FaUserCircle size={30} style={{ color: 'white',marginRight: '15px' }} />
       </div>
   );
 };

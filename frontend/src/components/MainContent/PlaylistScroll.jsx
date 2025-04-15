@@ -25,11 +25,11 @@ const PlaylistScroll = ({ setCurrentSong, setCurrentSongView ,customClass}) => {
   }, []);
 
   const scrollLeft = () => {
-    scrollContainerRef.current.scrollBy({ left: -500, behavior: 'smooth' });
+    scrollContainerRef.current.scrollBy({ left: -300, behavior: 'smooth' });
   };
 
   const scrollRight = () => {
-    scrollContainerRef.current.scrollBy({ left: 500, behavior: 'smooth' });
+    scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import '../../css/style.css';
+
 import '../../css/songDetail.css';
 import { FaPlay } from 'react-icons/fa';
 import { FiPlusCircle } from 'react-icons/fi';

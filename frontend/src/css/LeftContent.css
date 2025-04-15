@@ -1,6 +1,6 @@
 .leftcontent {
     background-color: #000;
-    width: 80px;
+    width: 8vw;
     height: 100vh;
   
     display: flex;
@@ -18,7 +18,7 @@
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    padding: 10px 10px;
+    padding: 3px 3px;
     border: 1px solid #faf9f9
   }
 
@@ -40,8 +40,8 @@
   }
   
   .playlist-img {
-    width: 55px;
-    height: 55px;
+    width: 40px;
+    height: 40px;
     /* border-radius: 50%; */
     border-radius: 5px;
     object-fit: cover;

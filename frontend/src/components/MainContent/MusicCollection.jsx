@@ -4,7 +4,7 @@ import PlaylistScroll from "./PlaylistScroll";
 
 const MusicCollection = ({ setCurrentSong, setCurrentSongView }) => {
     return (
-      <div style={{padding: "20px"}}>
+      <div style={{padding: "0px 20px 20px 20px"}}>
         <h1>Part1</h1>
         <PlaylistGrid />
         <h1>Part2</h1>

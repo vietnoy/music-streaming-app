@@ -1,8 +1,8 @@
 /* Song Detail Header */
 .song-header {
     display: flex;
-    height: 300px;
-    padding: 20px;
+    height: 30vh;
+    padding: 1vw;
     gap: 20px;
     background-color: #3d8355;
 }
@@ -26,7 +26,7 @@
 
 /* Song Controls */
 .song-controls {
-    height: 80px;
+    height: 12hv;
     display: flex;
     background-color: #555;
     gap: 30px;
@@ -68,18 +68,18 @@
 
 /* Song List */
 .song-list {
-    padding: 20px 40px;
+    padding: 2vh 2vw;
 }
 
 .song-list-header {
     display: grid;
     grid-template-columns: 50px 1fr 150px;
     padding: 0 20px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     color: #b3b3b3;
     font-size: 14px;
     border-bottom: 1px solid #282828;
-    padding-bottom: 10px;
+    /* padding-bottom: 10px; */
 }
 
 .song-item {
@@ -162,6 +162,12 @@
     color: #b3b3b3;
 }
 
+
+.song-row {
+    padding: 0;
+    margin: 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .song-header {
@@ -207,3 +213,12 @@
         font-size: 12px;
     }
 } 
+
+.songs-list{
+    gap: 0px !important;
+}
+
+.song-row{
+    padding: 5px !important;
+}
+

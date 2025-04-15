@@ -14,6 +14,10 @@ const playlists = [
   { id: 7, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
   { id: 8, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
   { id: 9, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
+  { id: 6, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
+  { id: 7, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
+  { id: 8, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
+  { id: 9, image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg" },
 ];
 
 const LeftContent = () => {
@@ -21,7 +25,7 @@ const LeftContent = () => {
     <>
       <Link to="/library">
         <div className="icon-lib">
-          <LuLibraryBig size={24} color="white" />
+          <LuLibraryBig size={30} color="white" />
         </div>
       </Link>
       <div className="icon-plus">
