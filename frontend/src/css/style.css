@@ -52,15 +52,17 @@ gap: 1.465vw;
 }
 
 .home-icon{
-  background-color: #282828;
+  /* background-color: #282828; */
   padding: 0.488vw;
   border-radius: 50%;
-  border: 0.049vw solid #faf9f9;
+  /* border: 0.049vw solid #faf9f9; */
 }
 
 .home-icon:hover{
-  background-color: #34463a;
+  background-color: #1DB954;
   transform: scale(1.1);
+  color: white;
+  box-shadow: 0 0 10px rgba(29, 185, 84, 0.3); 
 }
 
 .input-container {
@@ -146,7 +148,7 @@ border-radius: 0.488vw;
 height: 105%; 
 }
 
-@media (max-width: 37.5vw) {
+@media (max-width: 786px) {
 .content {
     grid-template-columns: 100%; 
 }
@@ -174,32 +176,33 @@ width: calc(25% - 20px);
 overflow: hidden;
 text-overflow: ellipsis;
 white-space: nowrap;
+/* position: relative; */
 }
 
-@media (max-width: 50.0vw) {
+@media (max-width: 1000px) {
 .grid-item {
-    width: calc(33.33% - 20px); /* 3 ô trên 1 hàng */
+    width: calc(33.33% - 20px); 
 }
 }
 
-@media (max-width: 37.5vw) {
-.gird-item {
+@media (max-width: 800px) {
+.grid-item {
     width: calc(50% - 20px); /* 2 ô trên 1 hàng */
 }
 }
 
 @media (max-width: 23.438vw) {
-.gird-item {
+.grid-item {
     width: calc(100% - 20px); /* 1 ô trên 1 hàng */
 }
 }
 
 
 .grid-item img {
-width: 2.441vw;
-height: 5.144vh;
-border-radius: 0.195vw;
-margin-right: 0.488vw;
+  width: 50px; 
+  aspect-ratio: 1 / 1; 
+  border-radius: 0.195vw;
+  margin-right: 0.488vw;
 }
 
 .text-content {
@@ -241,6 +244,7 @@ align-items: center;
 min-width: 9.766vw;
 background-color: rgba(0, 0, 0, 0);
 border-radius: 0.391vw;
+aspect-ratio: 1 / 1;
 padding: 0.488vw;
 }
 .playlist-item:hover {
@@ -248,8 +252,9 @@ background-color: rgba(255, 255, 255, 0.1);
 }
 .song .playlist-item img {
 width: 9.766vw;
-height: 20.576vh;
+/* height: 20.576vh; */
 border-radius: 0.391vw;
+aspect-ratio: 1 / 1;
 border: 0.098vw solid #333; 
 }
 
@@ -284,8 +289,9 @@ border: 0.098vw solid #333;
 
 .artist .playlist-item img {
 width: 9.766vw;
-height: 20.576vh;
+/* height: 20.576vh; */
 border-radius: 100%;
+aspect-ratio: 1 / 1;
 border: 0.098vw solid #333; 
 }
 
@@ -551,3 +557,253 @@ padding-left: 0.244vw;
   
 
 /* --------------------------------------------------------------- */
+
+/* Grid items hover effect */
+.grid-item {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.grid-item:hover {
+  transform: translateY(-5px);
+  background-color: #666;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 1.1em;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.musicPlayer {
+  background: linear-gradient(to right, #1f1f1f, #2c2c2c);
+  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.grid-item {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(145deg, #999, #777);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes loading {
+  from {
+      left: -100%;
+  }
+  to {
+      left: 100%;
+  }
+}
+
+
+
+@media (max-width: 1200px) {
+  .content {
+      gap: 16px;
+      padding: 16px;
+  }
+  
+  .grid-container {
+      gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-btn {
+      padding: 8px 16px;
+      font-size: 14px;
+  }
+}
+
+.nav-btn, .play-icon, .grid-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-btn:active, .play-icon:active {
+  transform: scale(0.95);
+}
+
+.grid-item:active {
+  transform: scale(0.98);
+}
+
+
+
+.playlist-item {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.playlist-item:hover {
+  transform: translateY(-5px);
+  background-color: #666;
+}
+
+
+
+/* Responsive Breakpoints */
+@media (max-width: 1400px) {
+  .scroll-container {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .scroll-container {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .scroll-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .scroll-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .playlist-item {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .scroll-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .playlist-wrapper {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 375px) {
+  .scroll-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Update navbar styles */
+
+
+/* Add new styles for mobile search */
+@media (max-width: 768px) {
+  .input-container {
+      width: 40px;
+      overflow: hidden;
+  }
+
+  .search {
+      width: 0;
+      padding: 8px;
+      border: none;
+      opacity: 0;
+  }
+
+  .input-container:focus-within {
+      width: 100%;
+  }
+
+  .input-container:focus-within .search {
+      width: 100%;
+      padding: 8px 12px 8px 40px;
+      border: 1px solid #ccc;
+      opacity: 1;
+  }
+
+  .input-icon {
+      padding: 8px;
+      /* background: rgba(255, 255, 255, 0.1); */
+      border-radius: 50%;
+      size: 50px;
+  }
+}
+
+/* Update navbar layout for mobile */
+@media (max-width: 768px) {
+  .navbar {
+      padding: 8px 12px;
+  }
+
+  .center-group {
+      gap: 12px;
+  }
+}
+
+.input-icon {
+  position: absolute;
+  left: 10px;
+  color: #b3b3b3;
+  cursor: pointer;
+  z-index: 2;
+  font-size: 20px;
+}
+
+.input-icon:hover {
+  background-color: #1DB954;
+  transform: scale(1.1);
+  color: white;
+  box-shadow: 0 0 10px rgba(29, 185, 84, 0.3); 
+}
+
+@media (max-width: 768px) {
+  .input-container {
+    width: 40px;
+    overflow: hidden;
+  }
+
+  .input-container .search {
+    width: 0;
+    padding: 8px;
+    border: none;
+    opacity: 0;
+    font-size: 18px;
+  }
+
+  .input-container.expanded {
+    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 8px;
+    background: #282828;
+  }
+
+  .input-container.expanded .search {
+    width: 100%;
+    padding: 8px 12px 8px 40px;
+    border: 1px solid #ccc;
+    opacity: 1;
+  }
+
+  .input-icon {
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+  }
+}
