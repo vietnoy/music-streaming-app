@@ -46,12 +46,28 @@ touch .env
 ```
 Then add:
 ```ini
+# airflow config
+AIRFLOW__CORE__SQL_ALCHEMY_CONN="sqlite:////opt/airflow/airflow.db"
+AIRFLOW__EXECUTOR="SequentialExecutor"
+
+# spotify credentials
+SPOTIFY_CLIENT_ID=your_client_id
+SPOTIFY_CLIENT_SECRET=your_client_secret
+
+# pg credentials
 POSTGRES_USER=your_user
 POSTGRES_PASSWORD=your_password
 POSTGRES_HOST=your_host
 POSTGRES_PORT=your_port
 POSTGRES_DATABASE=your_database
 POSTGRES_TABLE=your_table
+
+# s3 credentials
+S3_ACCESS_KEY=your_access_key
+S3_SECRET_KEY=your_secret_key
+S3_BUCKET=your_bucket
+S3_PREFIX=your_s3_prefix
+S3_ENDPOINT=your_endpoint
 ```
 ### 5️⃣ Run the Application
 #### Run the backend
