@@ -1,102 +1,162 @@
-<<<<<<< Updated upstream
-import React, { useState } from "react";
-import '../css/MusicPlayer.css'
-import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp, FaRandom, FaRedo } from 'react-icons/fa';
-import { HiOutlineQueueList } from "react-icons/hi2";
-import { MdDevices } from "react-icons/md";
-
-const MusicPlayer = ({ currentSong }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [volume, setVolume] = useState(50);
-
-    return (
-        <div className="musicPlayer">
-            <div className="left">
-                <img src={currentSong.image} alt="" />
-                <div className="text-content">
-                    <span className="song-name">{currentSong.song}</span>
-                    <span className="artist-name">{currentSong.artist}</span>
-                </div>
-            </div>
-            <div className="center">
-                <div className="controls">
-                    <div className="control-buttons">
-                        <button className="control-btn">
-                            <FaRandom />
-                        </button>
-                        <button className="control-btn">
-                            <FaStepBackward />
-                        </button>
-                        <button className="control-btn play-btn" onClick={() => setIsPlaying(!isPlaying)}>
-                            {isPlaying ? <FaPause /> : <FaPlay />}
-                        </button>
-                        <button className="control-btn">
-                            <FaStepForward />
-                        </button>
-                        <button className="control-btn">
-                            <FaRedo />
-                        </button>
-                    </div>
-                    <div className="progress-bar">
-                        <span className="time-text">0:00</span>
-                        <div className="progress">
-                            <div className="progress-filled"></div>
-                        </div>
-                        <span className="time-text">0:00</span>
-                    </div>
-                </div>
-            </div>
-            <div className="right">
-                <div className="volume-control">
-                    <FaVolumeUp  size={20}/>
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="100" 
-                        value={volume}
-                        onChange={(e) => setVolume(e.target.value)}
-                        className="volume-slider"
-                    />
-                </div>
-                <div>
-                    <button className="queue-btn"><HiOutlineQueueList size={20} /></button>
-                    <button className="queue-btn"><MdDevices size={20} /></button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-=======
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp,
+  FaExpand, FaPlus, FaHeart, FaRegHeart
+} from "react-icons/fa";
 import "../styles/MusicPlayer.css";
-import { FaPlay, FaPause } from "react-icons/fa";
 
-const MusicPlayer = ({ currentSong }) => {
+const formatTime = (seconds) => {
+  if (isNaN(seconds)) return "0:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60).toString().padStart(2, "0");
+  return `${mins}:${secs}`;
+};
+
+const MusicPlayer = ({
+  currentSong,
+  isPlaying,
+  onPlayPause,
+  onNext,
+  onPrev,
+  onToggleFullscreen,
+  onToggleLike,
+  likedTrackIds = [],
+  userPlaylists = [],
+  onAddTrackToPlaylist
+}) => {
+  const audioRef = useRef(null);
+  const playlistRef = useRef(null);
+  const [volume, setVolume] = useState(100);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showPlaylistOptions, setShowPlaylistOptions] = useState(false);
+
+  const isLiked = currentSong && likedTrackIds.includes(currentSong.id);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (playlistRef.current && !playlistRef.current.contains(e.target)) {
+        setShowPlaylistOptions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) audioRef.current.play().catch(console.error);
+      else audioRef.current.pause();
+    }
+  }, [isPlaying, currentSong]);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume / 100;
+  }, [volume]);
+
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      setCurrentTime(audio.currentTime);
+      setDuration(audio.duration);
+      setProgress((audio.currentTime / audio.duration) * 100);
+    }
+  };
+
+  const handleProgressClick = (e) => {
+    const bar = e.target.getBoundingClientRect();
+    const percentage = (e.clientX - bar.left) / bar.width;
+    audioRef.current.currentTime = duration * percentage;
+  };
+
   return (
     <div className="music-player">
+      <audio
+        ref={audioRef}
+        src={currentSong?.mp3_url}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleTimeUpdate}
+        onEnded={onNext}
+      />
+
       <div className="player-left">
-        <img src={currentSong.image} alt="cover" />
+        <img
+          className="song-cover"
+          src={currentSong?.image_url || "/default_cover.png"}
+          alt="cover"
+        />
         <div className="song-info">
-          <p className="title">{currentSong.song}</p>
-          <p className="artist">{currentSong.artist}</p>
+          <p className="title">{currentSong?.track_name || "No song playing"}</p>
+          <p className="artist">{currentSong?.artist_name || ""}</p>
         </div>
+
+        <div className="playlist-dropdown-wrapper" ref={playlistRef}>
+          <button className="icon-button" onClick={() => setShowPlaylistOptions((prev) => !prev)}>
+            <FaPlus />
+          </button>
+          {showPlaylistOptions && (
+            <div className="playlist-options-dropdown">
+              {userPlaylists.map((pl) => (
+                <div
+                  key={pl.id}
+                  className="playlist-option-item"
+                  onClick={() => {
+                    onAddTrackToPlaylist(currentSong.id, pl.id);
+                    setShowPlaylistOptions(false);
+                  }}
+                >
+                  {pl.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button className="icon-button" onClick={() => onToggleLike(currentSong?.id)}>
+          {isLiked ? <FaHeart color="#1DB954" /> : <FaRegHeart />}
+        </button>
       </div>
 
       <div className="player-center">
-        <button className="play-button">
-          <FaPlay />
-          <FaPause />
-        </button>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: "10%" }}></div>
+        <div className="controls">
+          <FaStepBackward className="icon-button" onClick={onPrev} />
+          <button className="play-button" onClick={onPlayPause}>
+            {isPlaying ? <FaPause /> : <FaPlay />}
+          </button>
+          <FaStepForward className="icon-button" onClick={onNext} />
+        </div>
+        <div className="progress-container">
+          <span className="time">{formatTime(currentTime)}</span>
+          <div className="progress-bar" onClick={handleProgressClick}>
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+            <div className="progress-thumb" />
+          </div>
+          <span className="time">{formatTime(duration)}</span>
         </div>
       </div>
 
-      <div className="player-right">{/* Optional: volume, queue, etc */}</div>
+      <div className="player-right">
+        <div className="volume-control">
+          <FaVolumeUp />
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={volume}
+            className="volume-slider"
+            onChange={(e) => setVolume(e.target.value)}
+            style={{
+              background: `linear-gradient(to right, #1db954 0%, #1db954 ${volume}%, #444 ${volume}%, #444 100%)`,
+            }}
+          />
+        </div>
+        <button className="icon-button" onClick={onToggleFullscreen}>
+          <FaExpand />
+        </button>
+      </div>
     </div>
   );
 };
 
->>>>>>> Stashed changes
 export default MusicPlayer;

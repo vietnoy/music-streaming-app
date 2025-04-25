@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from spotipy import Spotify
 from spotipy.oauth2 import SpotifyClientCredentials
 from upload_pg import upload_to_postgres
-from upload_pg import upload_to_postgres
 from logging.handlers import RotatingFileHandler
 
 # 1. Config paths
@@ -17,6 +16,7 @@ DATA_DIR = os.path.join(AIRFLOW_HOME, "data")
 LOG_DIR = os.path.join(AIRFLOW_HOME, "logs")
 PROGRESS_FILE = os.path.join(AIRFLOW_HOME, "progress.json")
 DATASET_PATH = os.path.join(DATA_DIR, "dataset.csv")
+TRACKS_FILE = os.path.join(AIRFLOW_HOME, "tracks.json")
 
 # 2. Load environment variables
 load_dotenv(os.path.join(AIRFLOW_HOME, ".env"))
@@ -59,7 +59,7 @@ def read_csv(batch_number: int) -> pd.DataFrame:
         exit(1)
     
     df = pd.read_csv(DATASET_PATH)
-    batch_size = 3800
+    batch_size = 4000
     start = batch_number * batch_size
     end = min(start + batch_size, len(df))
     df_batch = df.iloc[start:end]
@@ -92,28 +92,41 @@ def process_batch(df_batch: pd.DataFrame, sp: Spotify, batch_number: int) -> Tup
                 attempt += 1
                 backoff *= 2
 
-    for track in all_tracks:
+        time.sleep(1)
+
+    for index, track in enumerate(all_tracks):
+        logger.info(f"Fetching track's information ({index + 1}/{len(all_tracks)})")
+
         if not track: continue
         track_id = track["id"]
         row = df_batch[df_batch["track_id"] == track_id].iloc[0]
         album = track["album"]
         album_id = album["id"]
 
+        # Fetch album detail
         if album_id not in albums:
-            try:
-                album_data = sp.album(album_id)
-                albums[album_id] = {
-                    "id": album_id,
-                    "name": album_data["name"],
-                    "release_date": album_data["release_date"],
-                    "image_url": album_data["images"][0]["url"] if album_data["images"] else None,
-                    "type": album_data["album_type"]
-                }
-                for artist in album_data["artists"]:
-                    album_artists.append({"album_id": album_id, "artist_id": artist["id"]})
-                    artist_ids.add(artist["id"])
-            except Exception as e:
-                logger.error(f"[Batch {batch_number}] Album fetch failed for {album_id}: {e}")
+            attempt = 1
+            backoff = 2
+            while attempt <= 5:
+                try:
+                    album_data = sp.album(album_id)
+                    albums[album_id] = {
+                        "id": album_id,
+                        "name": album_data["name"],
+                        "release_date": album_data["release_date"],
+                        "image_url": album_data["images"][0]["url"] if album_data["images"] else None,
+                        "type": album_data["album_type"]
+                    }
+                    for artist in album_data["artists"]:
+                        album_artists.append({"album_id": album_id, "artist_id": artist["id"]})
+                        artist_ids.add(artist["id"])
+
+                    break
+                except Exception as e:
+                    logger.error(f"[Batch {batch_number}] Album fetch failed for {album_id}: {e} (Attempt {attempt})")
+                    time.sleep(backoff)
+                    backoff *= 2
+                    attempt += 1
 
         for artist in track["artists"]:
             artist_ids.add(artist["id"])
@@ -129,19 +142,31 @@ def process_batch(df_batch: pd.DataFrame, sp: Spotify, batch_number: int) -> Tup
             })
             songs.append(song_data)
 
+        time.sleep(1)
+
     # Batch fetch artists
     artist_ids = list(artist_ids)
     for i in range(0, len(artist_ids), 50):
-        try:
-            for artist in sp.artists(artist_ids[i:i+50])["artists"]:
-                artists[artist["id"]] = {
-                    "id": artist["id"],
-                    "name": artist["name"],
-                    "followers": artist["followers"]["total"],
-                    "image_url": artist["images"][0]["url"] if artist["images"] else None
-                }
-        except Exception as e:
-            logger.error(f"[Batch {batch_number}] Artist batch fetch error: {e}")
+        attempt = 1
+        backoff = 2
+        while attempt <= 5:
+            try:
+                for artist in sp.artists(artist_ids[i:i+50])["artists"]:
+                    artists[artist["id"]] = {
+                        "id": artist["id"],
+                        "name": artist["name"],
+                        "followers": artist["followers"]["total"],
+                        "image_url": artist["images"][0]["url"] if artist["images"] else None
+                    }
+
+                break
+            except Exception as e:
+                logger.error(f"[Batch {batch_number}] Artist batch fetch error: {e} (Attempt {attempt})")
+                time.sleep(backoff)
+                backoff *= 2
+                attempt += 1
+        
+        time.sleep(1)
 
     return albums, artists, songs, album_artists
 
@@ -154,40 +179,59 @@ def upload_df_to_pg(albums: Dict, artists: Dict, songs: List, album_artists: Lis
     album_artists_df = pd.DataFrame(album_artists)
 
     songs_df = songs_df.sort_values("popularity", ascending=False)
-    songs_df = songs_df.drop_duplicates(subset=["track_id", "artist_id"], keep="first")
-    songs_df = songs_df.sort_values("popularity", ascending=False)
-    songs_df = songs_df.drop_duplicates(subset=["track_id", "artist_id"], keep="first")
+    songs_df = songs_df.drop_duplicates(subset=["track_id", "artist_id"])
 
-    upload_to_postgres(albums_df, "albums", logger)
-    upload_to_postgres(artists_df, "artists", logger)
-    upload_to_postgres(songs_df, "songs", logger)
-    upload_to_postgres(album_artists_df, "album_artist", logger)
+    album_artists_df = album_artists_df.drop_duplicates(subset=["album_id", "artist_id"])
+
+    logger.info(f"[BATCH {batch_number}] Starting upload of data frames")
+
+    upload_to_postgres(albums_df, "albums", ["id"], logger)
+    upload_to_postgres(artists_df, "artists", ["id"], logger)
+    upload_to_postgres(songs_df, "songs", ["track_id", "artist_id"], logger)
+    upload_to_postgres(album_artists_df, "album_artists", ["album_id", "artist_id"], logger)
 
     logger.info(f"[Batch {batch_number}] Completed {len(songs_df)} songs, {len(artists_df)} artists, {len(albums_df)} albums")
 
     upload_batch_number(batch_number)
+    upload_tracks_file(songs)
 
 # 9. Save next batch number
 def upload_batch_number(batch_number: int):
     with open(PROGRESS_FILE, "w") as f:
         json.dump({"batch_number": batch_number + 1}, f)
 
-# 10. Main entry
+# 10. Upload all tracks name to download mp3 from youtube
+def upload_tracks_file(songs: List[Dict]):
+    unique_track_names = set()
+    for song in songs:
+        track_name = song["track_name"]
+        if track_name:
+            unique_track_names.add(track_name)
+
+    with open(TRACKS_FILE, "w", encoding="utf-8") as f:
+        json.dump(
+            [{"track_name": name} for name in sorted(unique_track_names)],
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
+
+# 11. Main entry
 if __name__ == "__main__":
     batch_number = load_batch_number()
-    print(f"Loaded batch_number: {batch_number}")
+    logger.info(f"Loaded batch_number: {batch_number}")
     
     df_batch = read_csv(batch_number)
-    print(f"Read CSV with {len(df_batch)} rows")
+    logger.info(f"Read CSV with {len(df_batch)} rows")
     
     sp = sp_client()
-    print("Initialized Spotify client")
+    logger.info("Initialized Spotify client")
     
     albums, artists, songs, album_artists = process_batch(df_batch, sp, batch_number)
-    print("Finished processing batch")
+    logger.info("Finished processing batch")
 
     upload_df_to_pg(albums, artists, songs, album_artists, batch_number)
-    print("Upload complete")
+    logger.info("Upload complete")
 
     logger.info("All done.")
 

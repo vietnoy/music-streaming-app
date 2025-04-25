@@ -10,7 +10,7 @@ class UserCreate(BaseModel):
     gender: Optional[str]
 
 class UserResponse(BaseModel):
-    id: int
+    id: str
     username: str
     email: EmailStr
     birthdate: date

@@ -1,37 +1,117 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import SidebarLeft from "../components/SidebarLeft";
-import MainContent from "../components/MainContent/MainContent";
 import RightContent from "../components/RightContent";
 import MusicPlayer from "../components/MusicPlayer";
+import { usePlayer } from "../context/PlayerContext";
+import { jwtDecode } from "jwt-decode";
 import "../styles/MainContent/Home.css";
 
 const Home = () => {
-  const [currentSong, setCurrentSong] = useState({
-    song: "No song playing",
-    artist: "",
-    image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg",
-  });
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = token ? jwtDecode(token)?.sub : null;
+  const username = user?.username || "Guest";
 
-  const [currentSongView, setCurrentSongView] = useState({
-    song: "No song playing",
-    artist: "",
-    image: "https://i.pinimg.com/736x/d5/62/d4/d562d4205927c8d1ca5eed0adcaaa25d.jpg",
-  });
+  const [likedTrackIds, setLikedTrackIds] = useState([]);
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const { currentSong, isPlaying, playSong, stop, nextSong, prevSong } = usePlayer();
+
+  // Fetch liked tracks
+  useEffect(() => {
+    const fetchLikedTracks = async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
+        const data = await res.json();
+        setLikedTrackIds(data);
+      } catch (err) {
+        console.error("Failed to fetch liked tracks:", err);
+      }
+    };
+
+    if (userId) fetchLikedTracks();
+  }, [userId]);
+
+  // Fetch user's custom playlists (excluding 'Liked Songs')
+  useEffect(() => {
+    const fetchPlaylists = async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const data = await res.json();
+        const customPlaylists = data.filter((pl) => pl.name !== "Liked Songs");
+        setUserPlaylists(customPlaylists);
+      } catch (err) {
+        console.error("Failed to fetch playlists:", err);
+      }
+    };
+
+    if (userId) fetchPlaylists();
+  }, [userId]);
+
+  const handleToggleLike = async () => {
+    if (!currentSong || !userId) return;
+    const isLiked = likedTrackIds.includes(currentSong.id);
+    const method = isLiked ? "DELETE" : "POST";
+
+    try {
+      await fetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${currentSong.id}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setLikedTrackIds((prev) =>
+        isLiked ? prev.filter((id) => id !== currentSong.id) : [...prev, currentSong.id]
+      );
+    } catch (err) {
+      console.error("Failed to toggle like:", err);
+    }
+  };
+
+  const handleAddTrackToPlaylist = async (trackId, playlistId) => {
+    try {
+      await fetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ track_id: trackId, playlist_id: playlistId }),
+      });
+
+      console.log("Track added to playlist");
+    } catch (err) {
+      console.error("Failed to add track to playlist:", err);
+    }
+  };
 
   return (
     <div className="home">
-      <Navbar />
+      <Navbar username={username} />
+
       <div className="home-content">
         <SidebarLeft />
-        <MainContent
-          currentSongView={currentSongView}
-          setCurrentSong={setCurrentSong}
-          setCurrentSongView={setCurrentSongView}
-        />
+        <div className="main-outlet">
+          <Outlet />
+        </div>
         <RightContent currentSong={currentSong} />
       </div>
-      <MusicPlayer currentSong={currentSong} />
+
+      <MusicPlayer
+        currentSong={currentSong}
+        isPlaying={isPlaying}
+        onPlayPause={() => {
+          if (isPlaying) stop();
+          else playSong(currentSong);
+        }}
+        onNext={nextSong}
+        onPrev={prevSong}
+        likedTrackIds={likedTrackIds}
+        userPlaylists={userPlaylists}
+        onToggleLike={handleToggleLike}
+        onAddTrackToPlaylist={handleAddTrackToPlaylist}
+        onToggleFullscreen={() => alert("Fullscreen not implemented")}
+      />
     </div>
   );
 };

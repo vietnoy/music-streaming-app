@@ -1,7 +1,27 @@
+# Environment variables
 .env
+
+# Python
 venv/
-node_modules/
-.log
 __pycache__/
-.cache
+*.pyc
+
+# Node.js
+node_modules/
+
+# Logs
 logs/
+*.log
+
+# Cache
+.cache/
+
+# IDE/editor settings
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Testing outputs
+coverage/

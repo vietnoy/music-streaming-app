@@ -15,20 +15,13 @@ const DropdownIndicator = (props) => {
           transition: "transform 0.3s ease",
         }}
       >
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M7 10l5 5 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" />
-      </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M7 10l5 5 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        </svg>
       </span>
     </components.DropdownIndicator>
   );
 };
-
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -39,13 +32,15 @@ const Signup = () => {
     gender: "",
     agree: false
   });
+
   const genderOptions = [
-    { value: "", label: "Select gender (optional)", isDisabled: true  },
+    { value: "", label: "Select gender (optional)", isDisabled: true },
     { value: "female", label: "Female" },
     { value: "male", label: "Male" },
     { value: "nonbinary", label: "Non-binary" },
     { value: "prefer-not", label: "Prefer not to say" },
   ];
+
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -59,8 +54,8 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
     const { email, password, username, birthdate, gender, agree } = formData;
+
     if (!email || !password || !username || !birthdate) {
       setError("Please fill in all required fields.");
       return;
@@ -69,19 +64,19 @@ const Signup = () => {
       setError("You must accept the terms and conditions.");
       return;
     }
-  
+
     try {
       const response = await fetch("http://localhost:8000/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, username, birthdate, gender })
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Signup failed.");
       }
-  
+
       const result = await response.json();
       console.log("Signup successful:", result);
       alert("Signup successful!");
@@ -92,11 +87,14 @@ const Signup = () => {
   };
 
   return (
-    <div className="spotify-signin">
-      <div className="signin-container">
+    <div className="spotify-signup">
+      <div className="signup-container">
         <h1>Sign up for free to start listening</h1>
 
-        {error && <p className="error-text" style={{color: "white"}}>{error}</p>}
+        {/* Consistent layout space for error */}
+        <p className={`error-text ${error ? "revealed" : ""}`}>
+          {error || " "}
+        </p>
 
         <form onSubmit={handleSubmit}>
           <input type="text" name="username" placeholder="Username" value={formData.username} onChange={handleChange} required />
@@ -115,7 +113,7 @@ const Signup = () => {
             }
             isOptionDisabled={(option) => option.isDisabled}
             styles={{
-              control: (base, state) => ({
+              control: (base) => ({
                 ...base,
                 backgroundColor: "#2a2a2a",
                 borderRadius: "6px",
@@ -126,24 +124,16 @@ const Signup = () => {
                 fontSize: "15px",
                 color: "white",
                 cursor: "pointer",
-                transition: "all 0.3s ease-in-out",
               }),
-              indicatorSeparator: (base) => ({
-                ...base,
-                display: "none",
-              }),
+              indicatorSeparator: () => ({ display: "none" }),
               dropdownIndicator: (base) => ({
                 ...base,
                 color: "#ccc",
-                "&:hover": {
-                  color: "#ccc",
-                },
               }),
               singleValue: (base) => ({
                 ...base,
                 color: "white",
               }),
-              // Each option style
               option: (base, state) => ({
                 ...base,
                 padding: "12px 20px",
@@ -155,10 +145,7 @@ const Signup = () => {
                 borderRadius: "10px",
                 color: "white",
                 fontWeight: "bold",
-                cursor: "pointer",
-                transition: "background 0.3s ease-in-out",
               }),
-              // Dropdown container
               menu: (base) => ({
                 ...base,
                 backgroundColor: "#181818",
@@ -166,19 +153,17 @@ const Signup = () => {
                 boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
                 padding: "4px 0",
                 marginTop: "8px",
-                left: "50%",  
+                left: "50%",
                 transform: "translateX(-50%)",
                 width: "90%",
                 zIndex: 99,
               }),
-
-              // Option list inside the dropdown
               menuList: (base) => ({
                 ...base,
-                padding: 0, // remove default spacing
-                maxHeight: "200px", // optional scroll limit
+                padding: 0,
+                maxHeight: "200px",
                 overflowY: "auto",
-              })
+              }),
             }}
           />
 
@@ -187,11 +172,14 @@ const Signup = () => {
             <p>I agree to the Terms and Conditions</p>
           </label>
 
-          <button type="submit" className="signin-btn">Sign Up</button>
+          <button type="submit" className="signup-btn">Sign Up</button>
         </form>
 
         <hr className="divider" />
-        <p style={{color: "white"}}>Already have an account? <a href="/signin" className="signup-link">Sign in here</a></p>
+        <p style={{ color: "white" }}>
+          Already have an account?{" "}
+          <a href="/signin" className="signup-link">Sign in here</a>
+        </p>
       </div>
     </div>
   );

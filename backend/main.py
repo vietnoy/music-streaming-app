@@ -6,6 +6,9 @@ from models.user import User
 from models.album import Album
 from models.artist import Artist
 from models.album_artists import AlbumArtist
+from models.playlist import Playlist
+from models.playlist_user import PlaylistUser
+from models.playlist_tracks import PlaylistTracks
 from routes.auth_routes import router as auth_router
 from routes.music_routes import router as music_router
 from routes.user_routes import router as user_router

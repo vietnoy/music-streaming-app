@@ -1,4 +1,4 @@
-/* .spotify-signin {
+  .spotify-signin {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -19,7 +19,8 @@
   .signin-container h1 {
     color: #fff;
     font-size: 24px;
-    margin-bottom: 60px;
+    margin-bottom: 40px;
+    margin-top: 40px;
   }
   
   input {
@@ -83,4 +84,17 @@
   
   .signup-link:hover {
     text-decoration: underline;
-  } */
+  }
+
+  .error-text {
+    height: 20px; /* or adjust based on font size */
+    color: #ff4c4c;
+    font-size: 14px;
+    margin-bottom: 10px;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+  }
+  
+  .error-text.revealed {
+    opacity: 1;
+  }

@@ -1,16 +1,40 @@
-.navbar {
-    height: 80px;
+  .navbar {
+    height: 60px;
     width: 95%;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: auto;
+    margin-top: 0px;
+    margin-bottom: 0px;
   }
 
   .spotify-logo {
     height: 50px;
     object-fit: contain;
     border-radius: 50%;
+  }
+
+  .home-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 35px;
+    cursor: pointer;
+    margin-left: 20px;
+    transition: opacity 0.3s ease;
+  }
+  
+  .home-button:hover {
+    opacity: 0.7;
+  }
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 30px;
   }
 
   .nav-right {
@@ -37,6 +61,8 @@
     color: white;
     font-size: 14px;
     height: 40px;
+    padding: 10px;
+    width: 300px;
   }
   
   .search-input::placeholder {
@@ -44,11 +70,166 @@
   }
   
   .nav-icon {
-    font-size: 20px;
+    font-size: 25px;
     color: white;
     cursor: pointer;
   }
   
   .nav-icon:hover {
-    color: #1db954;
+    color: #aab0ac;
   }
+
+  .profile-initial {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #1db954; /* Spotify green */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+  }
+
+  .profile-wrapper {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .dropdown-menu {
+    padding: 0px;
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-60%) translateY(-10px);
+    background-color: #282828;
+    border-radius: 6px;
+    z-index: 999;
+    width: max-content;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+  }
+  
+  .dropdown-menu.show {
+    opacity: 1;
+    transform: translateX(-60%) translateY(0);
+    padding: 0px;
+    font-weight: bold !important;
+  }
+  
+  .dropdown-menu button {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 14px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+  }
+  
+  .dropdown-menu button:hover {
+    color: #fff;
+    text-shadow: 0 0 6px #ffffffaa;
+  }
+
+  .search-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .search-filter {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: none;
+    background-color: #282828;
+    color: white;
+  }
+
+/* Dropdown container */
+.search-filter-wrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Main dropdown button */
+.search-filter-button {
+  color: gray;
+  background-color: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 20px;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  width: 150px;
+  gap: 6px;
+}
+
+/* Hover effect */
+.search-filter-button:hover {
+  color: white;
+}
+
+/* Dropdown menu */
+.search-filter-dropdown {
+  position: absolute;
+  top: 35px;
+  left: 0;
+  background-color: #282828;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  min-width: 130px;
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+/* When dropdown is visible */
+.search-filter-wrapper .search-filter-dropdown.show {
+  opacity: 1;
+  transform: translateY(0px);
+  pointer-events: auto;
+}
+
+/* Individual items */
+.dropdown-item {
+  padding: 10px 14px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 8px;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #3e3e3e;
+}
+
+/* Chevron icon */
+.arrow-icon {
+  font-size: 10px;
+  margin-top: 2px;
+  transition: transform 0.3s ease;
+}
+
+/* Optional: rotate arrow when open */
+.search-filter-button.open .arrow-icon {
+  transform: rotate(180deg);
+}

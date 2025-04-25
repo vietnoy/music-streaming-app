@@ -1,27 +1,36 @@
+version: "3.9"
+
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
     ports:
       - "8000:8000"
     env_file:
       - backend/.env
     volumes:
       - ./backend/music:/app/music
+    restart: always
+    depends_on:
+      - airflow
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
+    restart: always
 
   airflow:
-    build: ./airflow
+    build:
+      context: ./airflow
     ports:
       - "8080:8080"
     command: >
       bash -c "
-        airflow db init &&
+        airflow db migrate &&
         airflow users create --username admin --password admin --firstname Air --lastname Flow --role Admin --email admin@example.com &&
         airflow scheduler &
         exec airflow webserver"
@@ -32,7 +41,14 @@ services:
       - ./airflow/.env:/opt/airflow/.env
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/progress.json:/opt/airflow/progress.json
+      - ./airflow/tracks.json:/opt/airflow/tracks.json
       - ./airflow/data:/opt/airflow/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
 volumes:
   pgdata:

@@ -2,28 +2,25 @@ import React from "react";
 import "../styles/RightContent.css";
 
 const RightContent = ({ currentSong }) => {
+  if (!currentSong) return null;
+
   return (
-    <aside className="right-content">
-      <h3>Now Playing</h3>
-      <img src={currentSong.image} alt="cover" />
-      <div className="info">
-        <p className="title">{currentSong.song}</p>
-        <p className="artist">{currentSong.artist}</p>
-      </div>
+    <aside className="right-content-cover">
+      <img
+        className="cover-image"
+        src={currentSong.image_url}
+        alt={currentSong.track_name}
+      />
+      <div className="overlay-content">
+        <h1 className="song-title">{currentSong.track_name}</h1>
+        <p className="song-artist">{currentSong.artist_name}</p>
 
-      <div className="section">
-        <h4>Related Music Videos</h4>
-        <div className="video-card">
-          <img src="/default_cover.jpg" alt="video" />
-          <span>Drive – SZA</span>
-        </div>
-      </div>
-
-      <div className="section">
-        <h4>About the Artist</h4>
-        <div className="artist-card">
-          <img src="/default_cover.jpg" alt="artist" />
-          <span>SZA • 86,933,085 followers</span>
+        <div className="related-section">
+          <h4>Related Music</h4>
+          <div className="video-card">
+            <img src="/default_cover.jpg" alt="related" />
+            <span>{currentSong.track_name} (Live)</span>
+          </div>
         </div>
       </div>
     </aside>
