@@ -4,7 +4,7 @@ from io import BytesIO
 from google.cloud import storage
 import tempfile
 
-class Recommender:
+class RelatedSong:
     def __init__(self):
         self.data_df = None
         self.faiss_index = None
@@ -34,4 +34,4 @@ class Recommender:
         return pickle.load(BytesIO(blob.download_as_bytes()))
 
 
-recommender = Recommender()
+relatedSong = RelatedSong() 

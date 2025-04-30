@@ -21,7 +21,7 @@ import cloudinary.uploader
 import os
 from uuid import uuid4, UUID
 from dotenv import load_dotenv
-from utils.recommender_loader import recommender    
+from backend.utils.related_songs_loader import relatedSong 
 
 load_dotenv()
 
@@ -688,79 +688,11 @@ def remove_from_liked_playlist(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# import pandas as pd
-# from google.cloud import storage
-# from io import BytesIO
-# import faiss
-# import pickle
-# import os
-
-# router = APIRouter()
-
-# client = storage.Client().from_service_account_json(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-
-# faiss_index = None
-# track_features = None
-# data_df = None
-
-
-# def load_data():
-#     current_dir = os.path.dirname(os.path.abspath(__file__))  
-#     project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))  
-#     data_path = os.path.join(project_root, "airflow", "data", "dataset.csv")
-
-#     df = pd.read_csv(data_path)
-#     return df
-
-# import tempfile
-
-# def load_faiss_index():
-#     bucket = client.bucket(os.getenv("BUCKET_NAME"))
-#     blob = bucket.blob("music_index.index")
-#     faiss_index_data = blob.download_as_bytes()
-
-#     # Save faiss_index_data vào file tạm
-#     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-#         temp_file.write(faiss_index_data)
-#         temp_path = temp_file.name
-
-#     index = faiss.read_index(temp_path)  # Đọc từ file path
-#     return index
-
-
-# def load_track_features():
-#     bucket = client.bucket(os.getenv("BUCKET_NAME"))
-#     blob = bucket.blob("full_features.pkl")
-#     features_data = blob.download_as_bytes()
-#     features_stream = BytesIO(features_data)
-#     features = pickle.load(features_stream)
-#     return features
-
-# @router.on_event("startup")  # Khi backend start, FastAPI chạy cái này
-# def startup_event():
-#     global faiss_index, track_features, data_df
-#     print("Loading FAISS index and features...")
-#     data_df = load_data()
-#     faiss_index = load_faiss_index()
-#     track_features = load_track_features()
-#     print("Done.")
-
-# @router.get("/recommendations/{track_id}")
-# def get_recommendations(track_id: str):
-#     global faiss_index, track_features, data_df
-
-#     idx = data_df[data_df["track_id"] == track_id].index[0]
-#     query_vector = track_features[idx].reshape(1, -1)
-
-#     distances, indices = faiss_index.search(query_vector, 5 + 1)  # 5 bài giống nhất (bỏ bài gốc)
-#     similar_songs = data_df.iloc[indices[0][1:]]  
-#     return similar_songs[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
-
-@router.get("/recommendations/{track_id}")
+@router.get("/related/{track_id}")
 def get_recommendations(track_id: str):
-    idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
-    query_vector = recommender.track_features[idx].reshape(1, -1)
+    idx = relatedSong.data_df[relatedSong.data_df["track_id"] == track_id].index[0]
+    query_vector = relatedSong.track_features[idx].reshape(1, -1)
 
-    distances, indices = recommender.faiss_index.search(query_vector, 6)
-    similar = recommender.data_df.iloc[indices[0][1:]]
+    distances, indices = relatedSong.faiss_index.search(query_vector, 6)
+    similar = relatedSong.data_df.iloc[indices[0][1:]]
     return similar[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
