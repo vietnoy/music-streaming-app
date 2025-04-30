@@ -82,7 +82,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     liked_playlist = Playlist(
         name="Liked Songs",
         owner_id=new_user.id,
-        type="playlist",
+        
         is_public=False,
         description="Your personal liked songs collection",
         cover_image_url="https://misc.scdn.co/liked-songs/liked-songs-640.png",
@@ -95,6 +95,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     playlist_user = PlaylistUser(
         playlist_id=liked_playlist.id,
         user_id=new_user.id,
+        type="playlist",
     )
 
     db.add(playlist_user)

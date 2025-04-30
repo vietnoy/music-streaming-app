@@ -25,3 +25,5 @@ Thumbs.db
 
 # Testing outputs
 coverage/
+
+gcs_key.json 

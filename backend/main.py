@@ -12,6 +12,7 @@ from models.playlist_tracks import PlaylistTracks
 from routes.auth_routes import router as auth_router
 from routes.music_routes import router as music_router
 from routes.user_routes import router as user_router
+from utils.recommender_loader import recommender
 
 app = FastAPI()
 
@@ -32,3 +33,9 @@ app.include_router(user_router, prefix="/api/user")
 @app.get("/")
 def root():
     return {"message": "Testing OK"}
+
+@app.on_event("startup")
+def startup_event():
+    print("Loading models...")
+    recommender.load()
+    print("Done.")
