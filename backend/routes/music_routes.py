@@ -21,7 +21,8 @@ import cloudinary.uploader
 import os
 from uuid import uuid4, UUID
 from dotenv import load_dotenv
-from backend.utils.related_songs_loader import relatedSong 
+from utils.recommender_loader import recommender
+from utils.song_recommender import recommend_songs
 
 load_dotenv()
 
@@ -687,12 +688,29 @@ def remove_from_liked_playlist(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+# @router.get("/related")  
+# def get_recommendations(track_id: str = Query(...)):
+#     idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
+#     query_vector = recommender.track_features[idx].reshape(1, -1)
 
-@router.get("/related/{track_id}")
-def get_recommendations(track_id: str):
-    idx = relatedSong.data_df[relatedSong.data_df["track_id"] == track_id].index[0]
-    query_vector = relatedSong.track_features[idx].reshape(1, -1)
+#     distances, indices = recommender.faiss_index.search(query_vector, 6)
+#     similar = recommender.data_df.iloc[indices[0][1:]]
+#     return similar[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
 
-    distances, indices = relatedSong.faiss_index.search(query_vector, 6)
-    similar = relatedSong.data_df.iloc[indices[0][1:]]
+@router.get("/related/{track_id}")  
+def get_related_songs(track_id: str):
+    idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
+    query_vector = recommender.track_features[idx].reshape(1, -1)
+
+    distances, indices = recommender.faiss_index.search(query_vector, 6)
+    similar = recommender.data_df.iloc[indices[0][1:]]
     return similar[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
+
+@router.get("/recommendations/{user_id}")
+def get_recommendations(user_id: str, db: Session = Depends(get_db)):
+    liked_track_ids = get_liked_track_ids(user_id, db)
+    if not liked_track_ids:
+        raise HTTPException(status_code=404, detail="No liked tracks found for this user")
+
+    recommended_track_ids = recommend_songs(liked_track_ids)
+    return {"recommended_tracks": recommended_track_ids}
