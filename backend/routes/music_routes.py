@@ -22,7 +22,6 @@ import os
 from uuid import uuid4, UUID
 from dotenv import load_dotenv
 from utils.recommender_loader import recommender
-from utils.song_recommender import recommend_songs
 
 load_dotenv()
 
@@ -707,10 +706,6 @@ def get_related_songs(track_id: str):
     return similar[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
 
 @router.get("/recommendations/{user_id}")
-def get_recommendations(user_id: str, db: Session = Depends(get_db)):
-    liked_track_ids = get_liked_track_ids(user_id, db)
-    if not liked_track_ids:
-        raise HTTPException(status_code=404, detail="No liked tracks found for this user")
-
-    recommended_track_ids = recommend_songs(liked_track_ids)
+def get_recommendations(user_id: str, ):
+    recommended_track_ids = recommender.get_recommendations(user_id)
     return {"recommended_tracks": recommended_track_ids}

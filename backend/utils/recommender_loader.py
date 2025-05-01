@@ -1,7 +1,7 @@
 import os, pickle, faiss
 import pandas as pd
 from io import BytesIO
-from google.cloud import storage
+from google.cloud import storage, bigquery
 import tempfile
 
 class Recommender:
@@ -9,6 +9,11 @@ class Recommender:
         self.data_df = None
         self.faiss_index = None
         self.track_features = None
+
+        self.gcs_client = storage.Client.from_service_account_json(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+        self.bq_client = bigquery.Client.from_service_account_json(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+
+        self.bucket = self.gcs_client.bucket(os.getenv("BUCKET_NAME"))
 
     def load(self):
         self.data_df = self.load_data()
@@ -20,18 +25,30 @@ class Recommender:
         return pd.read_csv(os.path.abspath(path))
 
     def load_faiss_index(self):
-        client = storage.Client().from_service_account_json(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        bucket = client.bucket(os.getenv("BUCKET_NAME"))
-        blob = bucket.blob("music_index.index")
+        blob = self.bucket.blob("music_index.index")
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_file.write(blob.download_as_bytes())
             return faiss.read_index(temp_file.name)
 
     def load_track_features(self):
-        client = storage.Client().from_service_account_json(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        bucket = client.bucket(os.getenv("BUCKET_NAME"))
-        blob = bucket.blob("full_features.pkl")
+        blob = self.bucket.blob("full_features.pkl")
         return pickle.load(BytesIO(blob.download_as_bytes()))
 
+    def get_recommendations(self, user_id):
+        query = """
+            SELECT track_id
+            FROM `silicon-stock-452315-h4.music_recommend.recommend`
+            WHERE user_id = @user_id
+            ORDER BY recommended_at DESC
+            LIMIT 50
+        """
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("user_id", "STRING", user_id)
+            ]
+        )
+        query_job = self.bq_client.query(query, job_config=job_config)
+        results = query_job.result()
+        return [row.track_id for row in results]
 
 recommender = Recommender()
