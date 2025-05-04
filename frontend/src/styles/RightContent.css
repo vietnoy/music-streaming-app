@@ -54,3 +54,12 @@
     height: 50px;
     border-radius: 6px;
   }
+
+  /* -------------------------------- */
+ .track-title {
+  cursor: pointer;
+}
+
+.track-title:hover {
+  text-decoration: underline;
+}

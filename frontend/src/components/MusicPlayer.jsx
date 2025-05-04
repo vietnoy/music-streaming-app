@@ -83,12 +83,12 @@ const MusicPlayer = ({
       <div className="player-left">
         <img
           className="song-cover"
-          src={currentSong?.image_url || "/default_cover.png"}
+          src={currentSong?.image_url || currentSong?.cover_url || "/default_cover.png"}
           alt="cover"
         />
         <div className="song-info">
-          <p className="title">{currentSong?.track_name || "No song playing"}</p>
-          <p className="artist">{currentSong?.artist_name || ""}</p>
+          <p className="title">{currentSong?.track_name || currentSong?.title || "No song playing"}</p>
+          <p className="artist">{currentSong?.artist_name || currentSong?.artist || ""}</p>
         </div>
 
         <div className="playlist-dropdown-wrapper" ref={playlistRef}>

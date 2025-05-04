@@ -22,6 +22,7 @@ import os
 from uuid import uuid4, UUID
 from dotenv import load_dotenv
 from utils.recommender_loader import recommender
+import random
 
 load_dotenv()
 
@@ -56,18 +57,48 @@ def get_user_playlists(user_id: str, db: Session = Depends(get_db)):
     rows = result.fetchall()
 
     # Convert to list of PlaylistResponse
-    playlists = [
-        PlaylistResponse(
-            id = row[0],
-            name=row[1],
-            owner_name=row[2],
-            type=row[3],
-            cover_image_url=row[4],
-            description=row[5],
-            created_at=row[6],
-        )
-        for row in rows
-    ]
+    playlists = []
+    for row in rows:
+        playlist_id, name, owner_name, type_, cover, desc, created_at = row
+
+        if type_ == "artist":
+            artist_row = db.execute(text("""
+                SELECT name, image_url FROM artists WHERE id = :id
+            """), {"id": playlist_id}).fetchone()
+            if artist_row:
+                name, cover = artist_row
+                desc = f"Playlist của nghệ sĩ {name}"
+        
+        elif type_ == "single" or type_ == "composite":
+            song_row = db.execute(text("""
+                SELECT name, image_url FROM albums WHERE id = :id
+            """), {"id": playlist_id}).fetchone()
+            if song_row:
+                name, cover = song_row
+                desc = f"Single: {name}"
+
+        playlists.append(PlaylistResponse(
+            id=playlist_id,
+            name=name,
+            owner_name=owner_name,
+            type=type_,
+            cover_image_url=cover,
+            description=desc,
+            created_at=created_at
+        ))
+
+    # playlists = [
+    #     PlaylistResponse(
+    #         id = row[0],
+    #         name=row[1],
+    #         owner_name=row[2],
+    #         type=row[3],
+    #         cover_image_url=row[4],
+    #         description=row[5],
+    #         created_at=row[6],
+    #     )
+    #     for row in rows
+    # ]
 
     return playlists
 
@@ -696,14 +727,71 @@ def remove_from_liked_playlist(
 #     similar = recommender.data_df.iloc[indices[0][1:]]
 #     return similar[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
 
-@router.get("/related/{track_id}")  
-def get_related_songs(track_id: str):
+@router.get("/related/{track_id}", response_model=List[TrackResponse])
+def get_related_songs(track_id: str, db: Session = Depends(get_db)):
     idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
     query_vector = recommender.track_features[idx].reshape(1, -1)
 
     distances, indices = recommender.faiss_index.search(query_vector, 6)
     similar = recommender.data_df.iloc[indices[0][1:]]
-    return similar[['track_id', 'track_name', 'artists', 'track_genre', 'popularity']].to_dict(orient="records")
+    track_ids = similar['track_id'].tolist()
+    track_ids = random.sample(track_ids, min(3, len(track_ids)))
+
+    rows = []
+    for tid in track_ids:
+        query = text("""
+            SELECT s.track_id, s.track_name, at.id AS artist_id, at.name AS artist_name,
+                   ab.id AS album_id, ab.name AS album_name,
+                   s.duration_ms, s.track_image_url
+            FROM songs s
+            JOIN artists at ON at.id = s.artist_id
+            JOIN albums ab ON ab.id = s.album_id
+            WHERE s.track_id = :track_id
+        """)
+        row = db.execute(query, {"track_id": tid}).fetchone()
+        if row:
+            rows.append(row)
+
+    track_map = defaultdict(lambda: {
+        "id": None,
+        "title": None,
+        "artist_id": set(),
+        "artists": set(),
+        "album_id": None,
+        "album": None,
+        "duration": None,
+        "cover_url": None,
+        "date_added": None,
+    })
+
+    for row in rows:
+        track_id = row[0]
+        track = track_map[track_id]
+        track["id"] = track_id
+        track["title"] = row[1]
+        track["artist_id"].add(row[2])
+        track["artists"].add(row[3])
+        track["album_id"] = row[4]
+        track["album"] = row[5]
+        track["duration"] = format_duration(row[6])
+        track["cover_url"] = row[7]
+
+    return [
+        TrackResponse(
+            id=track["id"],
+            title=track["title"],
+            artist_id=", ".join(sorted(track["artist_id"])),
+            artist=", ".join(sorted(track["artists"])),
+            album_id=track["album_id"],
+            album=track["album"],
+            duration=track["duration"],
+            cover_url=track["cover_url"],
+            date_added=None 
+        )
+        for track in track_map.values()
+    ]
+
+
 
 @router.get("/recommendations/{user_id}")
 def get_recommendations(user_id: str, ):

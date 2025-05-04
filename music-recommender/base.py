@@ -7,11 +7,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # load postgres config connection
-pg_user = "musicdb"
-pg_password = "Gh7#Lx9!rTc8ZpQ2"
-pg_host = "54.254.2.140"
-pg_port = "5432"
-pg_database = "postgres"
+pg_user = os.getenv("POSTGRES_USER")
+pg_password = os.getenv("POSTGRES_PASSWORD")
+pg_host = os.getenv("POSTGRES_HOST")
+pg_port = os.getenv("POSTGRES_PORT")
+pg_database = os.getenv("POSTGRES_DATABASE")
 
 database_url = f"postgresql+psycopg2://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
 
