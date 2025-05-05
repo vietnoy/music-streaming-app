@@ -1,0 +1,87 @@
+.recommend-section {
+    padding: 20px;
+  }
+  
+  .recommend-title {
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  
+  /* Cuộn ngang */
+  .scroll-container {
+    display: flex;
+    gap: 16px;
+    scroll-behavior: smooth;
+  
+    /* Ẩn scrollbar mặc định */
+    overflow-x: hidden;
+  }
+  
+  .scroll-container:hover {
+    overflow-x: auto;
+  }
+  
+  /* Chrome */
+  .scroll-container::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-track {
+    background: #222;
+  }
+  
+  /* Firefox */
+  .scroll-container {
+    scrollbar-width: none; /* Ẩn trong Firefox */
+  }
+  
+  .scroll-container:hover {
+    scrollbar-width: thin;
+    scrollbar-color: #555 #222;
+  }
+  
+  .music-card {
+    min-width: 160px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.3s;
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
+  }
+  
+  .music-card:hover {
+    transform: scale(1.05);
+  }
+  
+  .music-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  
+  .music-card .title {
+    margin: 8px 0 0;
+    font-weight: bold;
+    color: #fff;
+  }
+  
+  .music-card .subtitle {
+    margin: 2px 0;
+    color: #ccc;
+    font-size: 14px;
+  }
+  
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+  

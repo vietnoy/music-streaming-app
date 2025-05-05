@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../styles/RightContent.css";
-import { FaPlay } from "react-icons/fa";
+// import { FaPlay } from "react-icons/fa";
 import { usePlayer } from "../context/PlayerContext";
 
 const RightContent = ({ currentSong }) => {
@@ -88,11 +88,11 @@ const RightContent = ({ currentSong }) => {
                     {track.title}
                   </p>
                   <span className="track-artist">{track.artist}</span>
-                  <FaPlay
+                  {/* <FaPlay
                     className="play-icon-row"
                     title="Phát bài này"
                     onClick={() => playSongFrom(track.id)}
-                  />
+                  /> */}
                 </div>
               </div>
             ))

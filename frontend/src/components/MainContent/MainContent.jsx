@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SectionScroller from "./SectionScroller";
+import RecommendSongs from "./RecommendSongs";
 import "../../styles/MainContent/MainContent.css";
 import { jwtDecode } from "jwt-decode";
 
@@ -44,6 +45,7 @@ const MainContent = () => {
       {playlists.length > 0 && <SectionScroller title="💽 Your Playlists" items={playlists} />}
       {savedAlbums.length > 0 && <SectionScroller title="🎼 Albums You Saved" items={savedAlbums} />}
       {likedArtists.length > 0 && <SectionScroller title="🔥 Artists You Like" items={likedArtists} />}
+      <RecommendSongs title="🎵 Recommended for You" />
     </div>
   );
 };
