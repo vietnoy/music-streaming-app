@@ -3,6 +3,7 @@ import SectionScroller from "./SectionScroller";
 import RecommendSongs from "./RecommendSongs";
 import "../../styles/MainContent/MainContent.css";
 import { jwtDecode } from "jwt-decode";
+import { authFetch } from '../../utils/authFetch';
 
 const MainContent = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -16,7 +17,7 @@ const MainContent = () => {
 
     const fetchPlaylists = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
 
         // Separate data by type

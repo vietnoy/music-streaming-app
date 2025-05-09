@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -21,7 +21,9 @@ load_dotenv("backend/.env")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTE")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))
+
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
@@ -38,8 +40,17 @@ def get_db():
 
 ### JWT helper
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    # print(f"Token creat at: {datetime.utcnow()}")
+    # print(f"Token expires at: {expire}")
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -106,7 +117,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 
 ### Signin route (returns token)
 @router.post("/signin")
-def signin(credentials: UserLogin, db: Session = Depends(get_db)):
+def signin(credentials: UserLogin, response: Response, db: Session = Depends(get_db)):
     user = (
         db.query(User)
         .filter(
@@ -118,9 +129,49 @@ def signin(credentials: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid username/email or password")
 
-    token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={"sub": str(user.id)})
+    refresh_token = create_refresh_token(data={"username": str(user.username)})
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="strict",
+        path="api/auth/refresh-token",
+        expires=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+    )
     return {
-        "access_token": token,
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+        },
+    }
+
+### Refresh token route
+@router.post("/refresh-token")
+def refresh_token(request: Request, response: Response, db: Session = Depends(get_db)):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="No refresh token provided")
+
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("username")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {
+        "access_token": access_token,
         "token_type": "bearer",
         "user": {
             "id": user.id,

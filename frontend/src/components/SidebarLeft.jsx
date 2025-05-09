@@ -2,6 +2,7 @@ import React, {useEffect, useState, useRef} from "react";
 import "../styles/SidebarLeft.css";
 import { FaPlus, FaAngleRight, FaAngleLeft, FaSearch, FaChevronDown} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { authFetch } from "../utils/authFetch";
 
 const SidebarLeft = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const SidebarLeft = () => {
         const user = JSON.parse(localStorage.getItem("user"));
         const userId = user?.id;
   
-        const res = await fetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`, {
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -159,7 +160,7 @@ const SidebarLeft = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
-      const res = await fetch(`http://localhost:8000/api/music/user/${userId}/create_playlist`, {
+      const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/create_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

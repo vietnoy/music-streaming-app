@@ -4,6 +4,7 @@ import "../../styles/MainContent/PlaylistPage.css";
 import { formatDistanceToNow } from "date-fns";
 import { FaPlay } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
+import { authFetch } from '../../utils/authFetch';
 
 const PlaylistPage = () => {
   const { playlistId } = useParams();
@@ -26,7 +27,7 @@ const PlaylistPage = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;  
-      await fetch(`http://localhost:8000/api/music/user/${userId}/playlist/${playlistId}`, {
+      await authFetch(`http://localhost:8000/api/music/user/${userId}/playlist/${playlistId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

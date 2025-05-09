@@ -5,6 +5,7 @@ import { FaPlay, FaHeart, FaRegHeart } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
 import SkeletonLoader from "../SkeletonLoader";
+import { authFetch } from '../../utils/authFetch';
 
 const AlbumPage = () => {
   const { albumId } = useParams();
@@ -34,7 +35,7 @@ const AlbumPage = () => {
   const toggleLike = async (trackId) => {
     try {
       const method = likedTrackIds.includes(trackId) ? "DELETE" : "POST";
-      await fetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
         method: method,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -75,7 +76,7 @@ const AlbumPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await fetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
+      await authFetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -130,7 +131,7 @@ const AlbumPage = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -144,7 +145,7 @@ const AlbumPage = () => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
         if (album?.id) {
           setIsAdded(data.some(item => item.id === album.id));
@@ -180,7 +181,7 @@ const AlbumPage = () => {
       (album.artist_id?.split(", ").length || 0) > 1 ? "composite" : "single";
   
     try {
-      await fetch(`http://localhost:8000/api/music/${userId}/add_to_library/${album.id}?type=${albumType}`, {
+      await authFetch(`http://localhost:8000/api/music/${userId}/add_to_library/${album.id}?type=${albumType}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -195,7 +196,7 @@ const AlbumPage = () => {
 
   const removeAlbum = async () => {
     try {
-      await fetch(`http://localhost:8000/api/music/${userId}/remove_from_library/${album.id}`, {
+      await authFetch(`http://localhost:8000/api/music/${userId}/remove_from_library/${album.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

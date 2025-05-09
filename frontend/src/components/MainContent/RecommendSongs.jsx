@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import "../../styles/MainContent/RecommendSongs.css";
 import { usePlayer } from "../../context/PlayerContext";
+import { authFetch } from '../../utils/authFetch';
 
 const RecommendSongs = ({ title }) => {
   const [songs, setSongs] = useState([]);
@@ -47,7 +48,7 @@ const RecommendSongs = ({ title }) => {
       setError(null);
 
       try {
-        const res = await fetch(`http://localhost:8000/api/music/recommendations/${userId}`, {
+        const res = await authFetch(`http://localhost:8000/api/music/recommendations/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
