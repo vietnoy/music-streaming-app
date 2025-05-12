@@ -3,39 +3,41 @@ import "../styles/Navbar.css";
 import { FaBell, FaUserCircle, FaChevronDown, FaHome } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode"; 
 
 const Navbar = ({ username, profilePicture }) => {
-
-  // inside Navbar component
   const location = useLocation();
+  const [showMenu, setShowMenu] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchType, setSearchType] = useState("Track");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roles, setRoles] = useState([]); 
 
-  // Clear search input if route changes away from `/search`
+  const menuRef = useRef();
+  const dropdownRef = useRef();
+  const debounceRef = useRef(null);
+  const navigate = useNavigate();
+
+  const getInitial = (name) => name ? name.charAt(0).toUpperCase() : "";
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const userRoles = decoded.roles || [];
+        setRoles(Array.isArray(userRoles) ? userRoles : [userRoles]);
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!location.pathname.includes("/search")) {
       setSearchTerm("");
     }
   }, [location]);
-  const [showMenu, setShowMenu] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [searchType, setSearchType] = useState("Track");
-  const [searchTerm, setSearchTerm] = useState("");
-  const menuRef = useRef();
-  const dropdownRef = useRef();
-  const navigate = useNavigate();
-  const debounceRef = useRef(null);
-
-  const getInitial = (name) => name ? name.charAt(0).toUpperCase() : "";
-
-  const handleSignOut = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
-    window.location.href = "/signin";
-  };
-
-  const handleDropdownClick = (type) => {
-    setSearchType(type);
-    setShowDropdown(false);
-  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -57,11 +59,22 @@ const Navbar = ({ username, profilePicture }) => {
     return () => clearTimeout(debounceRef.current);
   }, [searchTerm, searchType, navigate]);
 
+  const handleSignOut = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    window.location.href = "/signin";
+  };
+
+  const handleDropdownClick = (type) => {
+    setSearchType(type);
+    setShowDropdown(false);
+  };
+
   return (
     <header className="navbar">
       <div className="nav-left">
         <img src="/spotify-logo.png" alt="Spotify" className="spotify-logo" />
-        <button className="home-button" onClick={() => navigate("/")}>
+        <button className="home-b" onClick={() => navigate("/")}>
           <FaHome /> 
         </button>
       </div>
@@ -122,6 +135,10 @@ const Navbar = ({ username, profilePicture }) => {
           )}
           <div className={`dropdown-menu ${showMenu ? "show" : ""}`}>
             <button className="button" onClick={handleSignOut}>Sign Out</button>
+            <button className="button" onClick={() => navigate("/setting")}>Setting</button>
+            {roles.includes("admin") && (
+              <button className="button" onClick={() => navigate("/database")}>Database</button>
+            )}
           </div>
         </div>
       </div>

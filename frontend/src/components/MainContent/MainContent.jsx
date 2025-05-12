@@ -18,14 +18,35 @@ const MainContent = () => {
         const res = await fetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
 
-        // Separate data by type
-        const formatted = data.map((item) => ({
-          id: item.id,
-          title: item.name,
-          subtitle: item.owner_name || "",
-          image: item.cover_image_url || "/default_cover.jpg",
-          type: item.type,
-          created_at: item.created_at,
+        const formatted = await Promise.all(data.map(async (item) => {
+          try {
+            let image = item.cover_image_url;
+            let title = item.name;
+        
+            if (item.type === "artist") {
+              const res = await fetch(`http://localhost:8000/api/music/artist/${item.id}`);
+              const data = await res.json();
+              image = data.profile_image_url;
+              title = data.name;
+            } else if (item.type === "single" || item.type === "composite") {
+              const res = await fetch(`http://localhost:8000/api/music/album/${item.id}`);
+              const data = await res.json();
+              image = data.cover_image_url;
+              title = data.name;
+            }
+        
+            return {
+              id: item.id,
+              title: title,
+              subtitle: item.owner_name || "",
+              image: image,
+              type: item.type,
+              created_at: item.created_at,
+            };
+          } catch (err) {
+            console.error("Failed to fetch user library:", err);
+            return null;
+          }
         }));
 
         setPlaylists(formatted.filter((item) => item.type === "playlist"));

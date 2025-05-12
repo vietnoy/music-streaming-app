@@ -12,8 +12,6 @@ class Playlist(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     cover_image_url = Column(String, nullable=True)
-    is_public = Column(Boolean, default=True)
-    last_played = Column(DateTime, nullable=True)
     owner_id = Column(String, nullable=True)
     """
     - type 'single' or 'composite' for album

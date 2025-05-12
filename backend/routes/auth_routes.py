@@ -43,6 +43,20 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
+def get_current_admin_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        roles = payload.get("roles", [])
+        if user_id is None or "admin" not in roles:
+            raise HTTPException(status_code=403, detail="Admin access required")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == str(user_id)).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
 ### Authenticated user dependency
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -82,7 +96,6 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     liked_playlist = Playlist(
         name="Liked Songs",
         owner_id=new_user.id,
-        type="playlist",
         is_public=False,
         description="Your personal liked songs collection",
         cover_image_url="https://misc.scdn.co/liked-songs/liked-songs-640.png",
@@ -95,6 +108,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     playlist_user = PlaylistUser(
         playlist_id=liked_playlist.id,
         user_id=new_user.id,
+        type="playlist"
     )
 
     db.add(playlist_user)
@@ -117,7 +131,10 @@ def signin(credentials: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid username/email or password")
 
-    token = create_access_token(data={"sub": str(user.id)})
+    token = create_access_token(data={
+        "sub": str(user.id),
+        "roles": user.roles.split(",") if user.roles else ["user"]
+    })
     return {
         "access_token": token,
         "token_type": "bearer",
@@ -125,6 +142,7 @@ def signin(credentials: UserLogin, db: Session = Depends(get_db)):
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "roles": user.roles.split(",")
         },
     }
 

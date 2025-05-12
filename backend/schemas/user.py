@@ -22,3 +22,9 @@ class UserResponse(BaseModel):
 class UserLogin(BaseModel):
     identifier: str  # can be email or username
     password: str
+
+class UserUpdate(BaseModel):
+    username: Optional[str]
+    email: Optional[EmailStr]
+    birthdate: Optional[date]
+    gender: Optional[str]

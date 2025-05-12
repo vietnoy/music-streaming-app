@@ -10,3 +10,4 @@ class PlaylistUser(Base):
     user_id = Column(String, primary_key=True)
     type = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    last_played = Column(DateTime, nullable=True)

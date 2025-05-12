@@ -90,6 +90,19 @@ const ArtistPage = () => {
 
     const mp3Url = await fetchMp3Url(first.track_name);
     playSong({ ...first, mp3_url: mp3Url }, rest);
+
+    if (isAdded) {
+      try {
+        await fetch(`http://localhost:8000/api/music/library/${artist.id}/last_played`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (err) {
+        console.error("❌ Failed to update artist last_played:", err);
+      }
+    }
   };
 
   useEffect(() => {
@@ -210,9 +223,13 @@ const ArtistPage = () => {
 
       <button
         className="play-button"
-        onClick={() =>
-          isCurrentArtistPlaying ? stop() : playSongFrom(artist.tracks[0].id)
+        onClick={async () => {
+        if (isCurrentArtistPlaying) {
+          stop();
+        } else {
+          await playSongFrom(artist.tracks[0].id);
         }
+      }}
       >
         <span className="play-icon">
           {isCurrentArtistPlaying ? <i className="fas fa-pause" /> : <i className="fas fa-play" />}

@@ -14,3 +14,4 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     birthdate = Column(Date, nullable=False)
     gender = Column(String, nullable=True)
+    roles = Column(String, nullable=False, default="user")

@@ -23,12 +23,26 @@ const AlbumPage = () => {
   const isCurrentAlbumPlaying =
     album?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
 
-  const playSongFrom = (trackId) => {
+  const playSongFrom = async (trackId) => {
     const index = album.tracks.findIndex((t) => t.id === trackId);
     if (index === -1) return;
+
     const song = album.tracks[index];
     const rest = album.tracks.slice(index + 1);
     playSong(song, rest);
+
+    if (isAdded) {
+      try {
+        await fetch(`http://localhost:8000/api/music/library/${album.id}/last_played`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      } catch (err) {
+        console.error("❌ Failed to update album last_played:", err);
+      }
+    }
   };
 
   const toggleLike = async (trackId) => {
@@ -231,9 +245,13 @@ const AlbumPage = () => {
 
       <button
         className="play-button"
-        onClick={() =>
-          isCurrentAlbumPlaying ? stop() : playSong(album.tracks[0], album.tracks.slice(1))
-        }
+        onClick={async () => {
+          if (isCurrentAlbumPlaying) {
+            stop();
+          } else {
+            await playSongFrom(album.tracks[0].id);
+          }
+        }}
       >
         <span className="play-icon">
           {isCurrentAlbumPlaying ? <i className="fas fa-pause" /> : <i className="fas fa-play" />}

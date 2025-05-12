@@ -5,22 +5,23 @@ from sqlalchemy import text
 from models.base import SessionLocal
 from models.playlist import Playlist
 from models.playlist_user import PlaylistUser
+from models.user import User
 from schemas.album import AlbumResponse
 from schemas.track import TrackResponse
-from schemas.user import UserResponse
 from schemas.playlist import PlaylistResponse
 from schemas.artist import ArtistResponse
 from utils.format_ms import format_duration
 from collections import defaultdict
 from utils.s3_mp3_url import generate_presigned_url
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import cloudinary
 import cloudinary.uploader
 import os
-from uuid import uuid4, UUID
+from uuid import uuid4
 from dotenv import load_dotenv
+from .auth_routes import get_current_user
 
 load_dotenv()
 
@@ -372,7 +373,7 @@ def add_track_to_playlist(
     db.commit()
     return {"message": "Track successfully added to playlist"}
 
-@router.get("/{user_id}/add_to_library/{item_id}")
+@router.post("/{user_id}/add_to_library/{item_id}")
 def add_to_library(
     user_id: str,
     item_id: str,
@@ -685,3 +686,22 @@ def remove_from_liked_playlist(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+### Library API
+@router.put("/library/{item_id}/last_played")
+def update_last_played(
+    item_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    entry = db.query(PlaylistUser).filter(
+        PlaylistUser.user_id == current_user.id,
+        PlaylistUser.playlist_id == item_id
+    ).first()
+
+    if not entry:
+        raise HTTPException(status_code=403, detail="Item is not in user's library")
+
+    entry.last_played = datetime.now(timezone.utc)
+    db.commit()
+    return {"message": f"Updated last_played for item {item_id}"}

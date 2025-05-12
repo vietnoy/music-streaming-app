@@ -266,9 +266,20 @@ const PlaylistPage = () => {
             const firstTrack = playlist.tracks[0];
             const mp3Url = await fetchMp3Url(firstTrack.track_name);
             const enrichedFirst = { ...firstTrack, mp3_url: mp3Url };
-        
-            const rest = playlist.tracks.slice(1); // untouched
+
+            const rest = playlist.tracks.slice(1);
             playSong(enrichedFirst, rest);
+
+            try {
+              await fetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              });
+            } catch (err) {
+              console.error("❌ Failed to update last_played:", err);
+            }
           }
         }}
       >
@@ -306,7 +317,20 @@ const PlaylistPage = () => {
                         <span className="track-number">{i + 1}</span>
                         <FaPlay
                           className="play-icon-row"
-                          onClick={() => playSongFrom(track.id)}
+                          onClick={async () => {
+                            await playSongFrom(track.id);
+
+                            try {
+                              await fetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+                                method: "PUT",
+                                headers: {
+                                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                },
+                              });
+                            } catch (err) {
+                              console.error("❌ Failed to update last_played:", err);
+                            }
+                          }}
                         />
                       </>
                     )}
