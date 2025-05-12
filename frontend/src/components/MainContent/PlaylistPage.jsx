@@ -270,6 +270,17 @@ const PlaylistPage = () => {
         
             const rest = playlist.tracks.slice(1); // untouched
             playSong(enrichedFirst, rest);
+
+            try {
+              await fetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              });
+            } catch (err) {
+              console.error("❌ Failed to update last_played:", err);
+            }
           }
         }}
       >
@@ -307,7 +318,20 @@ const PlaylistPage = () => {
                         <span className="track-number">{i + 1}</span>
                         <FaPlay
                           className="play-icon-row"
-                          onClick={() => playSongFrom(track.id)}
+                          onClick={async () => {
+                            await playSongFrom(track.id);
+
+                            try {
+                              await fetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+                                method: "PUT",
+                                headers: {
+                                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                },
+                              });
+                            } catch (err) {
+                              console.error("❌ Failed to update last_played:", err);
+                            }
+                          }}
                         />
                       </>
                     )}

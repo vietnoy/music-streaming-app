@@ -55,6 +55,21 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
+###
+def get_current_admin_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        roles = payload.get("roles", [])
+        if user_id is None or "admin" not in roles:
+            raise HTTPException(status_code=403, detail="Admin access required")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == str(user_id)).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 ### Authenticated user dependency
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     try:
@@ -93,8 +108,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     liked_playlist = Playlist(
         name="Liked Songs",
         owner_id=new_user.id,
-        
-        is_public=False,
+        # is_public=False,
         description="Your personal liked songs collection",
         cover_image_url="https://misc.scdn.co/liked-songs/liked-songs-640.png",
     )
@@ -129,7 +143,10 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid username/email or password")
 
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={
+        "sub": str(user.id),
+        "roles": user.roles.split(",") if user.roles else ["user"]
+    })
     refresh_token = create_refresh_token(data={"username": str(user.username)})
     response.set_cookie(
         key="refresh_token",
@@ -147,6 +164,7 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "roles": user.roles,
         },
     }
 
@@ -169,7 +187,10 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
 
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={
+        "sub": str(user.id),
+        "roles": user.roles.split(",") if user.roles else ["user"]
+    })
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -177,6 +198,7 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "roles": user.roles,
         },
     }
 

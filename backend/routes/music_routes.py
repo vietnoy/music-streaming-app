@@ -14,15 +14,17 @@ from utils.format_ms import format_duration
 from collections import defaultdict
 from utils.s3_mp3_url import generate_presigned_url
 from fastapi.responses import JSONResponse
-from datetime import datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import cloudinary
 import cloudinary.uploader
 import os
-from uuid import uuid4, UUID
+from uuid import uuid4
 from dotenv import load_dotenv
 from utils.recommender_loader import recommender
 import random
+from models.user import User
+from .auth_routes import get_current_user
 
 load_dotenv()
 
@@ -47,7 +49,7 @@ def get_db():
 @router.get("/user_playlist", response_model=List[PlaylistResponse])
 def get_user_playlists(user_id: str, db: Session = Depends(get_db)):
     query = text("""
-        SELECT playlist_user.playlist_id AS id, playlists.name, users.username AS owner_name, playlist_user.type, playlists.cover_image_url, playlists.description, playlist_user.created_at
+        SELECT playlist_user.playlist_id AS id, playlists.name, users.username AS owner_name, playlist_user.type, playlists.cover_image_url, playlists.description, playlist_user.created_at, playlist_user.last_played as last_played
         FROM playlists
         RIGHT JOIN playlist_user ON playlists.id = playlist_user.playlist_id
         INNER JOIN users ON users.id = playlist_user.user_id
@@ -59,7 +61,7 @@ def get_user_playlists(user_id: str, db: Session = Depends(get_db)):
     # Convert to list of PlaylistResponse
     playlists = []
     for row in rows:
-        playlist_id, name, owner_name, type_, cover, desc, created_at = row
+        playlist_id, name, owner_name, type_, cover, desc, created_at, last_played = row
 
         if type_ == "artist":
             artist_row = db.execute(text("""
@@ -84,7 +86,8 @@ def get_user_playlists(user_id: str, db: Session = Depends(get_db)):
             type=type_,
             cover_image_url=cover,
             description=desc,
-            created_at=created_at
+            created_at=created_at,
+            last_played=last_played
         ))
 
     # playlists = [
@@ -171,7 +174,8 @@ def get_playlist_info(playlist_id: str, db: Session = Depends(get_db)):
             playlist_user.type,
             playlists.cover_image_url,
             playlists.description,
-            playlist_user.created_at
+            playlist_user.created_at,
+            playlist_user.last_played
         FROM playlists
         INNER JOIN playlist_user ON playlists.id = playlist_user.playlist_id
         INNER JOIN users ON users.id = playlist_user.user_id
@@ -191,6 +195,7 @@ def get_playlist_info(playlist_id: str, db: Session = Depends(get_db)):
         cover_image_url=result[4],
         description=result[5],
         created_at=result[6],
+        last_played=result[7]
     )
 
 @router.put("/playlist/{playlist_id}/edit")
@@ -851,3 +856,23 @@ def get_recommendations(user_id: str, db: Session = Depends(get_db)):
         )
         for track in track_map.values()
     ]
+
+
+### Library API
+@router.put("/library/{item_id}/last_played")
+def update_last_played(
+    item_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    entry = db.query(PlaylistUser).filter(
+        PlaylistUser.user_id == current_user.id,
+        PlaylistUser.playlist_id == item_id
+    ).first()
+
+    if not entry:
+        raise HTTPException(status_code=403, detail="Item is not in user's library")
+
+    entry.last_played = datetime.now(timezone.utc)
+    db.commit()
+    return {"message": f"Updated last_played for item {item_id}"}
