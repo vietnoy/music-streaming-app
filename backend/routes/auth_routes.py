@@ -99,6 +99,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
         hashed_password=hash_password(user.password),
         birthdate=user.birthdate,
         gender=user.gender,
+        # roles="admin"
     )
     db.add(new_user)
     db.commit()
@@ -152,9 +153,9 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=True,
-        samesite="strict",
-        path="api/auth/refresh-token",
+        secure=False,
+        samesite="lax",
+        # path="api/auth/refresh-token",
         expires=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
     )
     return {

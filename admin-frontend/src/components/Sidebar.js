@@ -13,7 +13,7 @@ const Sidebar = () => (
       <li><FaHome /><NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''}>Dashboard</NavLink></li>
       <li><FaUserCog /><NavLink to="/users" className={({ isActive }) => isActive ? 'active' : ''}>User Management</NavLink></li>
       <li><FaMusic /><NavLink to="/songs" className={({ isActive }) => isActive ? 'active' : ''}>Song Management</NavLink></li>
-      <li><FaPlusCircle /><NavLink to="/songs/add" className={({ isActive }) => isActive ? 'active' : ''}>Add Song</NavLink></li>
+      <li><FaPlusCircle /><NavLink to="/song/add" className={({ isActive }) => isActive ? 'active' : ''}>Add Song</NavLink></li>
       <li><FaCompactDisc /><NavLink to="/albums" className={({ isActive }) => isActive ? 'active' : ''}>Album Management</NavLink></li>
       <li><FaUserAlt /><NavLink to="/artists" className={({ isActive }) => isActive ? 'active' : ''}>Artist Management</NavLink></li>
       <li><FaTags /><NavLink to="/genres" className={({ isActive }) => isActive ? 'active' : ''}>Genre Management</NavLink></li>

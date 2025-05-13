@@ -142,3 +142,4 @@ def get_primary_key(table_name: str):
     if not result:
         raise HTTPException(status_code=400, detail="No primary key defined")
     return result[0]
+

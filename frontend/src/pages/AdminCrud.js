@@ -3,17 +3,19 @@ import "../styles/MainContent/AdminCrud.css";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { authFetch } from "../utils/authFetch";
 
 const API_BASE = "http://localhost:8000/api/database";
 
 const AdminCrud = () => {
   const [tables, setTables] = useState([]);
-  const [selectedTable, setSelectedTable] = useState(null);
+  const [selectedTable, setSelectedTable] = useState("__overview__");
   const [schema, setSchema] = useState([]);
   const [data, setData] = useState([]);
   const [formData, setFormData] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [primaryKey, setPrimaryKey] = useState(null);
+  const [overview, setOverview] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,10 +28,10 @@ const AdminCrud = () => {
     } catch {
       navigate("/signin");
     }
-  });
+  }, []);
 
   useEffect(() => {
-    fetch(`${API_BASE}/tables`, {
+    authFetch(`${API_BASE}/tables`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -46,9 +48,23 @@ const AdminCrud = () => {
   }, []);
 
   useEffect(() => {
-    if (!selectedTable) return;
+    authFetch(`${API_BASE}/overview`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => res.ok ? res.json() : Promise.reject(res))
+      .then(setOverview)
+      .catch((err) => {
+        console.error("Failed to fetch overview:", err);
+        setOverview({});
+      });
+  }, []);
 
-    fetch(`${API_BASE}/tables/${selectedTable}`, {
+  useEffect(() => {
+    if (!selectedTable || selectedTable === "__overview__") return;
+
+    authFetch(`${API_BASE}/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -60,7 +76,7 @@ const AdminCrud = () => {
         setData([]);
       });
 
-    fetch(`${API_BASE}/tables/${selectedTable}/schema`, {
+    authFetch(`${API_BASE}/tables/${selectedTable}/schema`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -93,7 +109,7 @@ const AdminCrud = () => {
     const url = `${API_BASE}/tables/${selectedTable}` + (editingId ? `/${editingId}` : "");
     const method = editingId ? "PUT" : "POST";
 
-    await fetch(url, {
+    await authFetch(url, {
       method,
       headers: {
         "Content-Type": "application/json",
@@ -105,7 +121,7 @@ const AdminCrud = () => {
     setFormData({});
     setEditingId(null);
 
-    fetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_BASE}/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -126,14 +142,14 @@ const AdminCrud = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this row?")) return;
 
-    await fetch(`${API_BASE}/tables/${selectedTable}/${id}`, {
+    await authFetch(`${API_BASE}/tables/${selectedTable}/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
 
-    fetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_BASE}/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -155,6 +171,14 @@ const AdminCrud = () => {
         </button>
         <h2>📦 Tables</h2>
         <ul>
+          <li
+            key="__overview__"
+            className={selectedTable === "__overview__" ? "active" : ""}
+            onClick={() => setSelectedTable("__overview__")}
+          >
+            📊 Overview
+          </li>
+
           {tables.map((table) => (
             <li
               key={table}
@@ -169,10 +193,37 @@ const AdminCrud = () => {
 
       <main className="main">
         <h1>🛠 Admin Database</h1>
-        {selectedTable && (
+
+        {selectedTable === "__overview__" ? (
+          <div className="overview">
+            <h2>📊 Overview</h2>
+            <div className="overview-cards">
+              <div className="card">
+                <h3>👤 User</h3>
+                <p>{overview.users ?? "..."}</p>
+              </div>
+              <div className="card">
+                <h3>🎵 Song</h3>
+                <p>{overview.songs ?? "..."}</p>
+              </div>
+              <div className="card">
+                <h3>📁 Playlist</h3>
+                <p>{overview.playlists ?? "..."}</p>
+              </div>
+              <div className="card">
+                <h3>💿 Album</h3>
+                <p>{overview.albums ?? "..."}</p>
+              </div>
+              <div className="card">
+                <h3>🎤 Artist</h3>
+                <p>{overview.artists ?? "..."}</p>
+              </div>
+            </div>
+          </div>
+
+        ) : selectedTable ? (
           <>
             <h2>Table: {selectedTable}</h2>
-
             <form onSubmit={handleSubmit} className="crud-form">
               {schema.map((col) => {
                 const isAutoGenerated = ["id"].includes(col.name);
@@ -217,6 +268,8 @@ const AdminCrud = () => {
               </tbody>
             </table>
           </>
+        ) : (
+          <p>...</p>
         )}
       </main>
     </div>
