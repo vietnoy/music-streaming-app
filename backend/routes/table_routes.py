@@ -155,7 +155,6 @@ def get_overview():
 
 
 
-
 def get_primary_key(table_name: str):
     conn = get_conn()
     cur = conn.cursor()
