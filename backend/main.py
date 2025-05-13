@@ -38,8 +38,8 @@ app.include_router(database_router, prefix="/api/database")
 def root():
     return {"message": "Testing OK"}
 
-@app.on_event("startup")
-def startup_event():
-    print("Loading models...")
-    recommender.load()
-    print("Done.")
+# @app.on_event("startup")
+# def startup_event():
+#     print("Loading models...")
+#     recommender.load()
+#     print("Done.")

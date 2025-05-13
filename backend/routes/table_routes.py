@@ -125,6 +125,37 @@ def delete_row(table_name: str, pk: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/overview")
+def get_overview():
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = 'public'
+        """)
+        tables = [row[0] for row in cur.fetchall()]
+
+        overview = {}
+        for table in tables:
+            try:
+                cur.execute(f'SELECT COUNT(*) FROM public."{table}"')
+                count = cur.fetchone()[0]
+                overview[table] = count
+            except Exception as table_err:
+                overview[table] = f"Error: {str(table_err)}"  
+
+        cur.close()
+        conn.close()
+        return overview
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Overview failed: {str(e)}")
+
+
+
+
 def get_primary_key(table_name: str):
     conn = get_conn()
     cur = conn.cursor()
