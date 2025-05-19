@@ -49,6 +49,7 @@ const Navbar = ({ username, profilePicture }) => {
   }, []);
 
   useEffect(() => {
+    if (searchType === "Emotion") return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!searchTerm.trim()) return;
 
@@ -69,6 +70,7 @@ const Navbar = ({ username, profilePicture }) => {
     setSearchType(type);
     setShowDropdown(false);
   };
+  const handleEmotionClick = (type) => {setShowDropdown(false);setSearchType(type);};
 
   return (
     <header className="navbar">
@@ -84,14 +86,18 @@ const Navbar = ({ username, profilePicture }) => {
           <input
             type="text"
             className="search-input"
-            placeholder={`What do you want to play?`}
+            placeholder={
+              searchType === "Emotion"
+                ? "How are you feeling today?"
+                : "What do you want to play?"
+            }
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
               window.history.pushState(null, "", `/search?query=${encodeURIComponent(e.target.value)}&filter_by=${searchType.toLowerCase()}`);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && searchType.toLowerCase()=== "emotion") {
                 e.preventDefault();
                 navigate(`/search?query=${encodeURIComponent(searchTerm)}&filter_by=${searchType.toLowerCase()}`);
               }
@@ -105,11 +111,15 @@ const Navbar = ({ username, profilePicture }) => {
               Search by {searchType} <FaChevronDown className="arrow-icon" />
             </div>
             <div className={`search-filter-dropdown ${showDropdown ? "show" : ""}`}>
-              {["Track", "Artist", "Album"].map((type) => (
+              {["Track", "Artist", "Album", "Emotion"].map((type) => (
                 <div
                   key={type}
                   className="dropdown-item"
-                  onClick={() => handleDropdownClick(type)}
+                  onClick={() =>
+                    type === "Emotion"
+                      ? handleEmotionClick(type)
+                      : handleDropdownClick(type)
+                  }
                 >
                   {type}
                 </div>

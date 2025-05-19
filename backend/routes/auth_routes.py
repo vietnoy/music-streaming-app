@@ -148,7 +148,7 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
         "sub": str(user.id),
         "roles": user.roles.split(",") if user.roles else ["user"]
     })
-    refresh_token = create_refresh_token(data={"username": str(user.username)})
+    refresh_token = create_refresh_token(data={"userId": str(user.id)})
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -178,13 +178,13 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
 
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("username")
-        if username is None:
+        userId: str = payload.get("userId")
+        if userId is None:
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.id == userId).first()
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
 

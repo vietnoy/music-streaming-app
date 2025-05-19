@@ -16,6 +16,8 @@ def get_liked_track_ids(user_id: str):
         INNER JOIN playlist_user pu ON pu.playlist_id = pt.playlist_id
         INNER JOIN playlists p ON p.id = pt.playlist_id
         WHERE pu.user_id = :user_id AND p.name = 'Liked Songs'
+        ORDER BY pt.created_at DESC
+        LIMIT 10
     """)
     result = db.execute(query, {"user_id": user_id}).fetchall()
     return [row[0] for row in result]

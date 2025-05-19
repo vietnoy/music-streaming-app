@@ -29,11 +29,13 @@ const AlbumPage = () => {
     if (index === -1) return;
     const song = album.tracks[index];
     const rest = album.tracks.slice(index + 1);
-    playSong(song, rest);
+    const mp3Url = await fetchMp3Url(song.track_name);
+    const enrichedSong = { ...song, mp3_url: mp3Url };
+    playSong(enrichedSong, rest);
 
     if (isAdded) {
       try {
-        await fetch(`http://localhost:8000/api/music/library/${album.id}/last_played`, {
+        await authFetch(`http://localhost:8000/api/music/library/${album.id}/last_played`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -322,7 +324,9 @@ const AlbumPage = () => {
                               <button>Add to Playlist</button>
                               {hoveredTrackId === track.id && userPlaylists.length > 0 && (
                                 <div className="playlist-options">
-                                  {userPlaylists.map((pl) => (
+                                  {userPlaylists
+                                  .filter((pl) => pl.type === "playlist")
+                                  .map((pl) => (
                                     <div
                                       key={pl.id}
                                       className="playlist-item"

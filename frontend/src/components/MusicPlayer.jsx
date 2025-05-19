@@ -97,7 +97,9 @@ const MusicPlayer = ({
           </button>
           {showPlaylistOptions && (
             <div className="playlist-options-dropdown">
-              {userPlaylists.map((pl) => (
+              {userPlaylists
+              .filter((pl) => pl.type === "playlist")
+              .map((pl) => (
                 <div
                   key={pl.id}
                   className="playlist-option-item"

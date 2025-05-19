@@ -94,7 +94,7 @@ const ArtistPage = () => {
 
     if (isAdded) {
       try {
-        await fetch(`http://localhost:8000/api/music/library/${artist.id}/last_played`, {
+        await authFetch(`http://localhost:8000/api/music/library/${artist.id}/last_played`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -305,7 +305,9 @@ const ArtistPage = () => {
                               <button>Add to Playlist</button>
                               {hoveredTrackId === track.id && userPlaylists.length > 0 && (
                                 <div className="playlist-options">
-                                  {userPlaylists.map((pl) => (
+                                  {userPlaylists
+                                  .filter((pl) => pl.type === "playlist")
+                                  .map((pl) => (
                                     <div
                                       key={pl.id}
                                       className="playlist-item"

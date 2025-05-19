@@ -31,9 +31,7 @@ const SidebarLeft = () => {
     };
   }, []);
   const sidebarRef = useRef(null);
-
-  useEffect(() => {
-    const fetchPlaylists = async () => {
+  const fetchPlaylists = async () => {
       try {
         const token = localStorage.getItem("token");
         const user = JSON.parse(localStorage.getItem("user"));
@@ -102,7 +100,7 @@ const SidebarLeft = () => {
         console.error("Error loading playlists:", err);
       }
     };
-  
+  useEffect(() => {
     fetchPlaylists();
   }, []);
 
@@ -151,15 +149,17 @@ const SidebarLeft = () => {
   const handleCreatePlaylist = async () => {
     const formData = new FormData();
     formData.append("name", newPlaylist.name);
-    formData.append("description", newPlaylist.description);
+    formData.append("description", newPlaylist.description || "");
+
     if (newPlaylist.coverImage) {
       formData.append("cover_image", newPlaylist.coverImage);
     }
-  
+
     try {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
+    
       const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/create_playlist`, {
         method: "POST",
         headers: {
@@ -169,17 +169,21 @@ const SidebarLeft = () => {
       });
   
       if (!res.ok) throw new Error("Failed to create playlist");
-  
+      for (let [key, value] of formData.entries()) {
+  console.log(`${key}: ${value}`);
+}
+
       alert("Playlist created!");
       setShowCreateForm(false);
       setNewPlaylist({ name: "", description: "", coverImage: null });
-      // Optionally refresh playlist list:
-      window.location.reload();
+      fetchPlaylists();
+      // window.location.reload();
     } catch (err) {
       console.error("Create playlist error:", err);
       alert("Failed to create playlist");
     }
-  };
+};
+
 
   return (
     <aside

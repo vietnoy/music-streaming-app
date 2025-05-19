@@ -272,7 +272,7 @@ const PlaylistPage = () => {
             playSong(enrichedFirst, rest);
 
             try {
-              await fetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+              await authFetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
                 method: "PUT",
                 headers: {
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -322,7 +322,7 @@ const PlaylistPage = () => {
                             await playSongFrom(track.id);
 
                             try {
-                              await fetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+                              await authFetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
                                 method: "PUT",
                                 headers: {
                                   Authorization: `Bearer ${localStorage.getItem("token")}`,

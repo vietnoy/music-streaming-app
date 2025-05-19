@@ -286,7 +286,8 @@ async def create_playlist(
         name=name,
         description=description,
         cover_image_url=cover_url,
-        is_public=True,
+        # is_public=True,
+        # last_played=None,
         owner_id=user_id
     )
     db.add(playlist)
@@ -737,10 +738,14 @@ def get_related_songs(track_id: str, db: Session = Depends(get_db)):
     idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
     query_vector = recommender.track_features[idx].reshape(1, -1)
 
-    distances, indices = recommender.faiss_index.search(query_vector, 6)
-    similar = recommender.data_df.iloc[indices[0][1:]]
-    track_ids = similar['track_id'].tolist()
-    track_ids = random.sample(track_ids, min(3, len(track_ids)))
+    distances, indices = recommender.faiss_index.search(query_vector, 10)
+    similar_ids = {
+        recommender.data_df.iloc[i]["track_id"]
+        for i in indices[0]
+        if recommender.data_df.iloc[i]["track_id"] != track_id
+    }
+
+    track_ids = random.sample(list(similar_ids), min(3, len(similar_ids)))
 
     rows = []
     for tid in track_ids:

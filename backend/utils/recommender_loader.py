@@ -40,7 +40,7 @@ class Recommender:
             FROM `silicon-stock-452315-h4.music_recommend.recommend`
             WHERE user_id = @user_id
             ORDER BY recommended_at DESC
-            LIMIT 50
+            LIMIT 15
         """
         job_config = bigquery.QueryJobConfig(
             query_parameters=[

@@ -6,6 +6,8 @@ import { usePlayer } from "../../context/PlayerContext";
 import "../../styles/MainContent/PlaylistPage.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
+import { Link } from "react-router-dom";
+
 
 const SearchPage = () => {
   const token = localStorage.getItem("token");
@@ -197,6 +199,32 @@ const SearchPage = () => {
       );
     }
   };
+  // const appendSuggestionsIfNeeded = async () => {
+  //   if (!currentSong || queue.length === 0) return;
+
+  //   const isLastSong = queue.length === 1 && currentSong.id === queue[0].id;
+  //   if (!isLastSong) return;
+
+  //   try {
+  //     const res = await fetch(`http://localhost:8000/api/music/related/${currentSong.id}`);
+  //     const related = await res.json();
+
+  //     const enriched = await Promise.all(related.map(async (track) => {
+  //       const urlRes = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.track_name)}`);
+  //       const urlData = await urlRes.json();
+  //       return { ...track, mp3_url: urlData.url };
+  //     }));
+
+  //     const validTracks = enriched.filter(Boolean);
+  //     setQueue((prev) => [...prev, ...validTracks]);
+  //   } catch (err) {
+  //     console.error("Failed to fetch related songs:", err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   appendSuggestionsIfNeeded();
+  // });
 
   return (
     <div className="search-results-page">
@@ -276,7 +304,7 @@ const SearchPage = () => {
                             return (
                               <React.Fragment key={idx}>
                                 {artistId ? (
-                                  <a href={`/artist/${artistId}`}>{name}</a>
+                                  <Link to={`/artist/${artistId}`}>{name}</Link>
                                 ) : (
                                   name
                                 )}
@@ -288,7 +316,7 @@ const SearchPage = () => {
                       </div>
                     </td>
                     <td className="col-album">
-                      <a href={`/album/${track.album_id}`}>{track.album}</a>
+                      <Link to={`/album/${track.album_id}`}>{track.album}</Link>
                     </td>
                     <td className="col-duration">{track.duration}</td>
                     <td className="col-like">
@@ -313,7 +341,9 @@ const SearchPage = () => {
                               <button>Add to Playlist</button>
                               {hoveredTrackId === track.id && userPlaylists.length > 0 && (
                                 <div className="playlist-options" onMouseEnter={() => setHoveredTrackId(track.id)}>
-                                  {userPlaylists.map((pl) => (
+                                  {userPlaylists
+                                  .filter((pl) => pl.type === "playlist")
+                                  .map((pl) => (
                                     <div
                                       key={pl.id}
                                       className="playlist-item"
@@ -340,7 +370,7 @@ const SearchPage = () => {
               <div key={album.id} className="album-card">
                 <img src={album.cover_image_url} alt={album.name} className="album-cover" />
                 <span className="album-title">
-                  <a href={`/album/${album.id}`}>{album.name}</a>
+                  <Link to={`/album/${album.id}`}>{album.name}</Link>
                 </span>
                 <span className="album-artist">
                    {(album.artist_name?.split(", ") || []).map((name, i) => (
@@ -359,7 +389,7 @@ const SearchPage = () => {
               <div key={artist.id} className="artist-card">
                 <img src={artist.profile_image_url} alt={artist.name} className="artist-cover" />
                 <span className="artist-name">
-                  <a href={`/artist/${artist.id}`}>{artist.name}</a>
+                  <Link to={`/artist/${artist.id}`}>{artist.name}</Link>
                 </span>
               </div>
             ))}
