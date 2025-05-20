@@ -1,33 +1,37 @@
-  .spotify-signup {
+.spotify-signup {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #121212; 
-  }
+    background-color: #121212;
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+}
 
-  .signup-container {
+.signup-container {
     background-color: #181818;
-    padding: 40px;
+    padding: auto 30px;
     border-radius: 10px;
-    width: 400px;
-    height: 450px;
+    width: 100%;
+    max-width: 450px;
     text-align: center;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
-  }
-  
-  .checkbox-label {
+    max-height: 100%;
+}
+
+.checkbox-label {
     display: flex;
     align-items: center;
     justify-content: center;
     color: #b3b3b3;
     font-size: 14px;
-    margin-top: 20px;
+    margin-top: 10px;
     gap: 10px;
     user-select: none;
-  }
-  
-  .checkbox-label input {
+}
+
+.checkbox-label input {
     all: unset;
     width: 11px;
     height: 11px;
@@ -37,13 +41,13 @@
     transition: background-color 0.2s ease-in-out;
     display: inline-block;
     position: relative;
-  }
-  
-  .checkbox-label input:checked {
-    background-color: #1DB954;
-  }
-  
-  input {
+}
+
+.checkbox-label input:checked {
+    background-color: #1db954;
+}
+
+input {
     width: 90%;
     padding: 12px 14px;
     background-color: #2a2a2a;
@@ -54,78 +58,87 @@
     display: block;
     margin: 20px auto 0 auto;
     box-sizing: border-box;
-    font-family: 'Inter', 'Helvetica Neue', sans-serif;
-  }
+    font-family: "Inter", "Helvetica Neue", sans-serif;
+}
 
-  input:focus {
+input:focus {
     outline: none;
-  }
-  
-  input[type="date"] {
+}
+
+input[type="date"] {
     cursor: pointer;
-  }
-  
-  input[type="date"]::-webkit-calendar-picker-indicator {
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
-  }
-  /* Custom scrollbar for react-select dropdown */
-  .react-select__menu-list::-webkit-scrollbar {
+}
+/* Custom scrollbar for react-select dropdown */
+.react-select__menu-list::-webkit-scrollbar {
     width: 6px;
-  }
+}
 
-  .react-select__menu-list::-webkit-scrollbar-track {
+.react-select__menu-list::-webkit-scrollbar-track {
     background: transparent;
-  }
+}
 
-  .react-select__menu-list::-webkit-scrollbar-thumb {
+.react-select__menu-list::-webkit-scrollbar-thumb {
     background-color: #555;
     border-radius: 3px;
-  }
+}
 
-  /* Optional for Firefox */
-  .react-select__menu-list {
+/* Optional for Firefox */
+.react-select__menu-list {
     scrollbar-color: #555 transparent;
     scrollbar-width: thin;
-  }
+}
 
-  .react-select__indicator-separator {
+.react-select__indicator-separator {
     display: none !important;
-  }
+}
 
-  .error-text {
+.error-text {
     height: 20px;
     color: #ff4c4c;
     font-size: 14px;
     opacity: 0;
     transition: opacity 0.3s ease;
     text-align: center;
-  }
-  
-  .error-text.revealed {
-    opacity: 1;
-  }
+}
 
-  .signup-btn {
+.error-text.revealed {
+    opacity: 1;
+}
+
+.signup-btn {
     width: 100%;
     padding: 12px;
-    margin-top: 60px;
+    margin-top: 40px;
     border: none;
     border-radius: 30px;
-    background-color: #1DB954;
+    background-color: #1db954;
     color: white;
     font-size: 16px;
     cursor: pointer;
     transition: 0.3s;
-  }
+}
 
-  .signup-btn:hover {
+.signup-btn:hover {
     background-color: #1ed760;
-  }
+}
 
-  .signup-container h1 {
+.signup-container h1 {
     color: #fff;
     font-size: 24px;
     margin-bottom: 20px;
-    margin-top: 40px;
-  }
+    margin-top: 20px;
+}
+
+.divider {
+    margin: 10px 0;
+}
+
+.signin-txt {
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
