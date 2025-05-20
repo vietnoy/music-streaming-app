@@ -39,6 +39,24 @@ const SearchPage = () => {
   const [params] = useSearchParams();
   const query = params.get("query") || "";
   const filterBy = params.get("filter_by") || "track";
+  const resultsParam = params.get("results");
+
+  const parseEmotionResults = () => {
+    if (!resultsParam) return null;
+    try {
+      const decodedResults = decodeURIComponent(resultsParam);
+      const parsedResults = JSON.parse(decodedResults);
+      if (parsedResults.reply) {
+        // Extract the JSON string from the markdown code block
+        const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
+        return JSON.parse(jsonStr);
+      }
+      return null;
+    } catch (err) {
+      console.error("Failed to parse emotion results:", err);
+      return null;
+    }
+  };
 
   const addToQueue = async (trackId) => {
     const track = results.find((t) => t.id === trackId);
@@ -244,6 +262,24 @@ const SearchPage = () => {
             {Array.from({ length: 8 }).map((_, i) => (
               <div className="skeleton-row shimmer" key={i}></div>
             ))}
+          </div>
+        ) : filterBy === "emotion" ? (
+          <div className="emotion-results">
+            {(() => {
+              const emotionData = parseEmotionResults();
+              if (!emotionData) {
+                return <div className="no-results">No emotion analysis available</div>;
+              }
+              return (
+                <div className="emotion-response">
+                  <div className="emotion-intro">{emotionData.intro}</div>
+                  <div className="emotion-mood">
+                    <span className="mood-label">Detected Mood:</span>
+                    <span className="mood-value">{emotionData.mood}</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ) : filterBy === "track" ? (
           <table className="track-table">

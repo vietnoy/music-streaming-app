@@ -4,6 +4,7 @@ import { FaBell, FaUserCircle, FaChevronDown, FaHome } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; 
+import { authFetch } from '../utils/authFetch';
 
 const Navbar = ({ username, profilePicture }) => {
   const location = useLocation();
@@ -74,7 +75,28 @@ const Navbar = ({ username, profilePicture }) => {
     setSearchType(type);
     setShowDropdown(false);
   };
-  const handleEmotionClick = (type) => {setShowDropdown(false);setSearchType(type);};
+
+  const handleEmotionSearch = async (query) => {
+    try {
+      const formData = new FormData();
+      formData.append('prompt', query);
+
+      const res = await fetch('http://localhost:8000/api/music/ask', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await res.json();
+      navigate(`/search?query=${encodeURIComponent(query)}&filter_by=emotion&results=${encodeURIComponent(JSON.stringify(data))}`);
+    } catch (err) {
+      console.error("Failed to get emotion-based recommendations:", err);
+    }
+  };
+
+  const handleEmotionClick = (type) => {
+    setShowDropdown(false);
+    setSearchType(type);
+  };
 
   return (
     <header className="navbar">
@@ -98,12 +120,14 @@ const Navbar = ({ username, profilePicture }) => {
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              window.history.pushState(null, "", `/search?query=${encodeURIComponent(e.target.value)}&filter_by=${searchType.toLowerCase()}`);
+              if (searchType !== "Emotion") {
+                window.history.pushState(null, "", `/search?query=${encodeURIComponent(e.target.value)}&filter_by=${searchType.toLowerCase()}`);
+              }
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && searchType.toLowerCase()=== "emotion") {
+              if (e.key === "Enter" && searchType === "Emotion") {
                 e.preventDefault();
-                navigate(`/search?query=${encodeURIComponent(searchTerm)}&filter_by=${searchType.toLowerCase()}`);
+                handleEmotionSearch(searchTerm);
               }
             }}
           />
@@ -134,7 +158,7 @@ const Navbar = ({ username, profilePicture }) => {
       </div>
 
       <div className="nav-right">
-        <FaBell className="nav-icon" />
+        {/* <FaBell className="nav-icon" /> */}
         <div
           className="profile-wrapper"
           ref={menuRef}

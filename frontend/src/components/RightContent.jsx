@@ -1,11 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "../styles/RightContent.css";
 // import { FaPlay } from "react-icons/fa";
 import { usePlayer } from "../context/PlayerContext";
+import { FaTimes } from "react-icons/fa";
+import { jwtDecode } from "jwt-decode";
+import { authFetch } from '../utils/authFetch';
 
-const RightContent = ({ currentSong }) => {
+const RightContent = ({ currentSong, isQueueVisible }) => {
   const [relatedSongs, setRelatedSongs] = useState([]);
-  const { playSong } = usePlayer();
+  const [userPlaylists, setUserPlaylists] = useState([]);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [hoveredTrackId, setHoveredTrackId] = useState(null);
+  const menuRefs = useRef({});
+  const token = localStorage.getItem("token");
+  const userId = token ? jwtDecode(token)?.sub : null;
+  const { playSong, queue, setQueue, isPlaying, removeFromQueue } = usePlayer();
 
   const fetchMp3Url = async (trackName) => {
     try {
@@ -34,7 +43,7 @@ const RightContent = ({ currentSong }) => {
   };
 
   useEffect(() => {
-    if (!currentSong?.id) return;
+    if (!currentSong?.id || isQueueVisible) return;
 
     const fetchRelated = async () => {
       try {
@@ -51,11 +60,121 @@ const RightContent = ({ currentSong }) => {
     };
 
     fetchRelated();
-  }, [currentSong]);
+  }, [currentSong, isQueueVisible]);
+
+  useEffect(() => {
+    const fetchUserPlaylists = async () => {
+      try {
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
+        const data = await res.json();
+        const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
+        setUserPlaylists(filtered);
+      } catch (err) {
+        console.error("Failed to fetch user playlists", err);
+      }
+    };
+
+    if (userId) fetchUserPlaylists();
+  }, [userId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        openMenuId &&
+        menuRefs.current[openMenuId] &&
+        !menuRefs.current[openMenuId].contains(e.target)
+      ) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMenuId]);
+
+  const addToQueue = async (trackId) => {
+    const track = relatedSongs.find((t) => t.id === trackId);
+    if (!track) return;
+
+    try {
+      const mp3Url = await fetchMp3Url(track.title);
+      const enriched = { ...track, mp3_url: mp3Url };
+
+      if (!isPlaying) {
+        playSong(enriched, []);
+      } else {
+        setQueue([...queue, enriched]);
+      }
+    } catch (err) {
+      console.error("Add to queue failed", err);
+    } finally {
+      setOpenMenuId(null);
+    }
+  };
+
+  const addToPlaylist = async (trackId, playlistId) => {
+    try {
+      await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ track_id: trackId, playlist_id: playlistId }),
+      });
+    } catch (err) {
+      console.error("Add to playlist failed", err);
+    } finally {
+      setOpenMenuId(null);
+    }
+  };
 
   if (!currentSong) return null;
 
-  return (
+  const renderQueueList = () => (
+    <div className="right-content-cover queue-view">
+      <div className="overlay-content">
+        <h4>Queue</h4>
+        {queue.length > 0 ? (
+          queue.slice(0, 10).map((track, index) => (
+            <div key={`${track.id}-${index}`} className="video-card">
+              <img
+                src={track.cover_url || track.image_url}
+                alt={track.title}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/default_cover.jpg";
+                }}
+              />
+              <div className="track-info">
+                <p
+                  className="track-title"
+                  onClick={() => playSongFrom(track.id)}
+                  title="Click to play this song"
+                >
+                  {track.title || track.track_name}
+                </p>
+                <span className="track-artist">{track.artist || track.artist_name}</span>
+              </div>
+              <button 
+                className="remove-from-queue"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeFromQueue(track.id);
+                }}
+                title="Remove from queue"
+              >
+                <FaTimes />
+              </button>
+            </div>
+          ))
+        ) : (
+          <p>Queue is empty.</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderCurrentSongWithRelated = () => (
     <aside className="right-content-cover">
       <img
         className="cover-image"
@@ -83,26 +202,59 @@ const RightContent = ({ currentSong }) => {
                   <p
                     className="track-title"
                     onClick={() => playSongFrom(track.id)}
-                    title="Bấm để phát bài này"
+                    title="Click to play this song"
                   >
                     {track.title}
                   </p>
                   <span className="track-artist">{track.artist}</span>
-                  {/* <FaPlay
-                    className="play-icon-row"
-                    title="Phát bài này"
-                    onClick={() => playSongFrom(track.id)}
-                  /> */}
+                </div>
+                <div className="options-wrapper" ref={(el) => (menuRefs.current[track.id] = el)}>
+                  <button 
+                    className="options-button" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenMenuId(track.id);
+                    }}
+                  >
+                    &#x22EE;
+                  </button>
+                  {openMenuId === track.id && (
+                    <div className="options-menu show">
+                      <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
+                      <div 
+                        className="playlist-submenu"
+                        onMouseEnter={() => setHoveredTrackId(track.id)}
+                        onMouseLeave={() => setHoveredTrackId(null)}
+                      >
+                        <button>Add to Playlist</button>
+                        {hoveredTrackId === track.id && userPlaylists.length > 0 && (
+                          <div className="playlist-options">
+                            {userPlaylists.map((pl) => (
+                              <div
+                                key={pl.id}
+                                className="playlist-item"
+                                onClick={() => addToPlaylist(track.id, pl.id)}
+                              >
+                                {pl.name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           ) : (
-            <p>Không có bài hát liên quan.</p>
+            <p>No related songs found.</p>
           )}
         </div>
       </div>
     </aside>
   );
+
+  return isQueueVisible ? renderQueueList() : renderCurrentSongWithRelated();
 };
 
 export default RightContent;

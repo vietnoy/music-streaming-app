@@ -71,6 +71,11 @@ export const PlayerProvider = ({ children }) => {
       console.error("Error fetching previous song URL", err);
     }
   };
+
+  const removeFromQueue = (trackId) => {
+    setQueue(prevQueue => prevQueue.filter(track => track.id !== trackId));
+  };
+
   useEffect(() => {
   console.log("Current song in context:", currentSong);
 }, [currentSong]);
@@ -87,6 +92,7 @@ export const PlayerProvider = ({ children }) => {
         stop,
         nextSong,
         prevSong,
+        removeFromQueue,
       }}
     >
       {children}

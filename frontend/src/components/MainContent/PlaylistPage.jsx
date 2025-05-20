@@ -78,6 +78,9 @@ const PlaylistPage = () => {
 
     const mp3Url = await fetchMp3Url(track.track_name);
     const enrichedTrack = { ...track, mp3_url: mp3Url };
+    
+    // console.log("enrichedTrack:", enrichedTrack);
+    // console.log("rest:", rest);
 
     playSong(enrichedTrack, rest); // Keep the rest without mp3_url
   };

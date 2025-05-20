@@ -17,6 +17,7 @@ const Home = () => {
 
   const [likedTrackIds, setLikedTrackIds] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
+  const [isQueueVisible, setIsQueueVisible] = useState(false);
   const { currentSong, isPlaying, playSong, stop, nextSong, prevSong } = usePlayer();
 
   // Fetch liked tracks
@@ -95,7 +96,10 @@ const Home = () => {
         <div className="main-outlet">
           <Outlet />
         </div>
-        <RightContent currentSong={currentSong} />
+        <RightContent 
+          currentSong={currentSong} 
+          isQueueVisible={isQueueVisible}
+        />
       </div>
 
       <MusicPlayer
@@ -112,6 +116,8 @@ const Home = () => {
         onToggleLike={handleToggleLike}
         onAddTrackToPlaylist={handleAddTrackToPlaylist}
         onToggleFullscreen={() => alert("Fullscreen not implemented")}
+        onToggleQueue={() => setIsQueueVisible(!isQueueVisible)}
+        isQueueVisible={isQueueVisible}
       />
     </div>
   );

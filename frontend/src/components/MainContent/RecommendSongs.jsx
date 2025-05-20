@@ -8,7 +8,7 @@ const RecommendSongs = ({ title }) => {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { playSong } = usePlayer();
+  const { queue, setQueue, playSong } = usePlayer();
 
   const fetchMp3Url = async (trackName) => {
     try {
@@ -22,20 +22,35 @@ const RecommendSongs = ({ title }) => {
   };
 
   const handlePlaySong = async (trackId) => {
-    const track = songs.find((t) => t.id === trackId);
-    if (!track) return;
+    const index = songs.findIndex((t) => t.id === trackId);
+    if (index === -1) return;
 
-    const rest = songs.filter((t) => t.id !== trackId);
+    const current = songs[index];
+    const restTracks = songs.slice(index + 1);
 
     try {
-      const mp3Url = await fetchMp3Url(track.title);
-      const enrichedTrack = { ...track, mp3_url: mp3Url };
+      const mp3Url = await fetchMp3Url(current.title);
+      const enrichedCurrent = {
+        ...current,
+        mp3_url: mp3Url,
+        track_name: current.title, 
+      };
 
-      playSong(enrichedTrack, rest);
+      const rest = await Promise.all(
+        restTracks.map(async (t) => {
+          return {
+            ...t,
+            track_name: t.title, 
+          };
+        })
+      );
+
+      playSong(enrichedCurrent, rest);
     } catch (err) {
       console.error("Error:", err);
     }
   };
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -54,6 +69,7 @@ const RecommendSongs = ({ title }) => {
           },
         });
         const data = await res.json();
+        console.log("Recommendations:", data);
         setSongs(data);
       } catch (err) {
         console.error(err);

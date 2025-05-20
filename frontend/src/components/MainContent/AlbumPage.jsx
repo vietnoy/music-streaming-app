@@ -91,7 +91,7 @@ const AlbumPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
+      await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -146,7 +146,7 @@ const AlbumPage = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`http://localhost:8000/api/music/user/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -196,7 +196,7 @@ const AlbumPage = () => {
       (album.artist_id?.split(", ").length || 0) > 1 ? "composite" : "single";
   
     try {
-      await authFetch(`http://localhost:8000/api/music/${userId}/add_to_library/${album.id}?type=${albumType}`, {
+      await authFetch(`http://localhost:8000/api/music/add_to_library/${album.id}?type=${albumType}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -211,7 +211,7 @@ const AlbumPage = () => {
 
   const removeAlbum = async () => {
     try {
-      await authFetch(`http://localhost:8000/api/music/${userId}/remove_from_library/${album.id}`, {
+      await authFetch(`http://localhost:8000/api/music/remove_from_library/${album.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

@@ -25,6 +25,7 @@ from utils.recommender_loader import recommender
 import random
 from models.user import User
 from .auth_routes import get_current_user
+import requests
 
 load_dotenv()
 
@@ -892,3 +893,64 @@ def update_last_played(
     entry.last_played = datetime.now(timezone.utc)
     db.commit()
     return {"message": f"Updated last_played for item {item_id}"}
+
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+from google import genai
+
+client = genai.Client(api_key=API_KEY)
+@router.post("/ask")
+async def ask_gemini(prompt: str = Form(...)):
+    user_prompt = prompt.strip()
+
+    if not user_prompt:
+        raise HTTPException(status_code=400, detail="Prompt không được để trống!")
+
+    final_prompt = f"""
+You are an empathetic and emotionally intelligent assistant.
+
+Context:
+The user is expressing an emotional state and is looking for music suggestions. Your job is to:
+1. Respond with a warm, emotionally intelligent English message that acknowledges their feelings.
+2. End the message with a gentle suggestion that is personalized to the emotion (e.g., "Maybe these songs will lift your mood" if they're sad).
+3. Select ONE appropriate music mood from the following list.
+
+Respond in this exact JSON format:
+
+{{
+  "intro": "<empathetic message with a personalized ending suggestion>",
+  "mood": "<ONE of: 'Lonely', 'Chill', 'Angry', 'Happy', 'Sad'>"
+}}
+
+Rules:
+- Do NOT mention any song titles or artists.
+- The intro must feel natural and caring.
+- The ending sentence should match the emotion and gently suggest listening to music.
+- The mood field must exactly match one of the five listed.
+
+User input:
+\"{user_prompt}\"
+"""
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=final_prompt
+        )
+
+        result = response
+        # print("📦 Gemini response:", result)
+
+        if response.candidates:
+            reply = response.candidates[0].content.parts[0].text
+            return {"reply": reply}
+        elif result.get("error"):
+            raise HTTPException(status_code=500, detail=result["error"].get("message", "Lỗi không xác định từ Gemini."))
+        else:
+            raise HTTPException(status_code=500, detail="Gemini không trả về dữ liệu hợp lệ.")
+
+    except Exception as e:
+        print("🔥 Lỗi khi gọi Gemini:", str(e))
+        raise HTTPException(status_code=500, detail="Lỗi máy chủ khi gọi Gemini.")
