@@ -40,7 +40,8 @@ def get_db():
 
 ### JWT helper
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    # expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=2))
     to_encode = data.copy()
     to_encode.update({"exp": expire})
     # print(f"Token creat at: {datetime.utcnow()}")
@@ -50,7 +51,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+    # expire = datetime.utcnow() + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=3))
+
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -156,7 +159,8 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
         secure=False,
         samesite="lax",
         # path="api/auth/refresh-token",
-        expires=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        # expires=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        expires=timedelta(minutes=3)
     )
     return {
         "access_token": access_token,
@@ -203,6 +207,10 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         },
     }
 
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("refresh_token")
+    return {"message": "Logged out"}
 
 ### Protected test route
 @router.get("/home")

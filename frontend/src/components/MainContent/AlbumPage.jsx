@@ -50,7 +50,7 @@ const AlbumPage = () => {
   const toggleLike = async (trackId) => {
     try {
       const method = likedTrackIds.includes(trackId) ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`http://localhost:8000/api/music/user/liked_track?track_id=${trackId}`, {
         method: method,
         headers: { Authorization: `Bearer ${token}` },
       });

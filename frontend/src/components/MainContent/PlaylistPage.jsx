@@ -27,7 +27,7 @@ const PlaylistPage = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;  
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/playlist/${playlistId}`, {
+      await authFetch(`http://localhost:8000/api/music/user/playlist/${playlistId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

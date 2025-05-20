@@ -48,7 +48,7 @@ const RecommendSongs = ({ title }) => {
       setError(null);
 
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/recommendations/${userId}`, {
+        const res = await authFetch(`http://localhost:8000/api/music/recommendations`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

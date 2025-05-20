@@ -37,7 +37,7 @@ const SidebarLeft = () => {
         const user = JSON.parse(localStorage.getItem("user"));
         const userId = user?.id;
   
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`, {
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -160,7 +160,7 @@ const SidebarLeft = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
     
-      const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/create_playlist`, {
+      const res = await authFetch(`http://localhost:8000/api/music/user/create_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

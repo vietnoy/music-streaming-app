@@ -17,7 +17,7 @@ const MainContent = () => {
 
     const fetchPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
         const data = await res.json();
 
         // Separate data by type

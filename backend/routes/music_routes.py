@@ -47,7 +47,8 @@ def get_db():
 
 ### Playlist API
 @router.get("/user_playlist", response_model=List[PlaylistResponse])
-def get_user_playlists(user_id: str, db: Session = Depends(get_db)):
+def get_user_playlists(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.id
     query = text("""
         SELECT playlist_user.playlist_id AS id, playlists.name, users.username AS owner_name, playlist_user.type, playlists.cover_image_url, playlists.description, playlist_user.created_at, playlist_user.last_played as last_played
         FROM playlists
@@ -230,8 +231,9 @@ async def update_playlist(
     db.refresh(playlist)
     return {"message": "Playlist updated", "cover_image_url": playlist.cover_image_url}
 
-@router.delete("/user/{user_id}/playlist/{playlist_id}")
-def delete_playlist(user_id: str, playlist_id: str, db: Session = Depends(get_db)):
+@router.delete("/user/playlist/{playlist_id}")
+def delete_playlist(playlist_id: str, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+    user_id = current_user.id
     # First delete all songs from the playlist
     db.execute(text("""
         DELETE FROM playlist_tracks
@@ -257,14 +259,16 @@ def delete_playlist(user_id: str, playlist_id: str, db: Session = Depends(get_db
 
     return {"message": "Playlist deleted successfully"}
 
-@router.post("/user/{user_id}/create_playlist")
+@router.post("/user/create_playlist")
 async def create_playlist(
     user_id: str,
     name: str = Form(...),
     description: str = Form(""),
     cover_image: UploadFile = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     playlist_id = str(uuid4())
     cover_url = None
 
@@ -379,13 +383,14 @@ def get_album_songs(album_id: str, db: Session = Depends(get_db)):
         for row in rows
     ]
 
-@router.post("/user/{user_id}/add_track_to_playlist")
+@router.post("/user/add_track_to_playlist")
 def add_track_to_playlist(
-    user_id: str,
     track_id: str = Body(...),
     playlist_id: str = Body(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     # Step 1: Check if track already exists
     existing = db.execute(text("""
         SELECT 1 FROM playlist_tracks
@@ -410,13 +415,14 @@ def add_track_to_playlist(
     db.commit()
     return {"message": "Track successfully added to playlist"}
 
-@router.post("/{user_id}/add_to_library/{item_id}")
+@router.post("/add_to_library/{item_id}")
 def add_to_library(
-    user_id: str,
     item_id: str,
     type: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     new_entry = PlaylistUser(
         playlist_id=item_id,
         user_id=user_id,
@@ -426,12 +432,13 @@ def add_to_library(
     db.add(new_entry)
     db.commit()
 
-@router.delete("/{user_id}/remove_from_library/{item_id}")
+@router.delete("/remove_from_library/{item_id}")
 def remove_from_library(
-    user_id:str,
     item_id:str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     delete_query = text("""
         DELETE FROM playlist_user
         WHERE playlist_id = :item_id AND user_id = :user_id
@@ -632,8 +639,9 @@ def get_mp3_url(track_name: str):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@router.get("/user/{user_id}/liked_track_ids", response_model=List[str])
-def get_liked_track_ids(user_id: str, db: Session = Depends(get_db)):
+@router.get("/user/liked_track_ids", response_model=List[str])
+def get_liked_track_ids(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.id
     query = text("""
         SELECT pt.track_id
         FROM playlist_tracks pt
@@ -644,12 +652,13 @@ def get_liked_track_ids(user_id: str, db: Session = Depends(get_db)):
     result = db.execute(query, {"user_id": user_id}).fetchall()
     return [row[0] for row in result]
 
-@router.post("/user/{user_id}/liked_track")
+@router.post("/user/liked_track")
 def add_to_liked_playlist(
-    user_id: str,
     track_id: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     local_time = datetime.now(ZoneInfo("Asia/Bangkok"))
     naive_time = local_time.replace(tzinfo=None)
     # Get Liked Songs playlist ID (p.name = 'Liked Songs' is error)
@@ -689,12 +698,13 @@ def add_to_liked_playlist(
 
     return {"message": "Track added to Liked Songs"}
 
-@router.delete("/user/{user_id}/liked_track")
+@router.delete("/user/liked_track")
 def remove_from_liked_playlist(
-    user_id: str,
     track_id: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     try:
         # Find Liked Songs playlist ID
         playlist_query = text("""
@@ -802,8 +812,9 @@ def get_related_songs(track_id: str, db: Session = Depends(get_db)):
     ]
 
 
-@router.get("/recommendations/{user_id}", response_model=List[TrackResponse])
-def get_recommendations(user_id: str, db: Session = Depends(get_db)):
+@router.get("/recommendations", response_model=List[TrackResponse])
+def get_recommendations(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.id
     recommended_track_ids = recommender.get_recommendations(user_id)
     if not recommended_track_ids:
         return []

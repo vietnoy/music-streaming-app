@@ -30,6 +30,12 @@ const SearchPage = () => {
     }
   }, [token]);
 
+  useEffect(() => {
+    console.log("queue", queue);
+
+
+  }, [queue]);
+
   const [params] = useSearchParams();
   const query = params.get("query") || "";
   const filterBy = params.get("filter_by") || "track";
@@ -69,7 +75,7 @@ const SearchPage = () => {
   const addToPlaylist = async (trackId, playlistId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await authFetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
+      const response = await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -150,7 +156,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`http://localhost:8000/api/music/user/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -164,7 +170,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
         const data = await res.json();
         // Exclude "Liked Songs"
         const filtered = data.filter((pl) => pl.name !== "Liked Songs");
@@ -185,7 +191,7 @@ const SearchPage = () => {
   
     try {
       const method = isLiked ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`http://localhost:8000/api/music/user/liked_track?track_id=${trackId}`, {
         method: method,
         headers: {
           "Authorization": `Bearer ${token}`

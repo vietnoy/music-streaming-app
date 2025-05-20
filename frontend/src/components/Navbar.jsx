@@ -63,6 +63,10 @@ const Navbar = ({ username, profilePicture }) => {
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
+    fetch("http://localhost:8000/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
     window.location.href = "/signin";
   };
 

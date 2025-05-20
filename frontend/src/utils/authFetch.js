@@ -16,9 +16,15 @@ export const authFetch = async (url, options = {}) => {
       method: "POST",
       credentials: "include",
     });
-
-    if (!refreshRes.ok) {
+    console.log("Refresh token response:", refreshRes.data);
+    if (refreshRes.status !== 200) {
       console.warn("Refresh token failed. Redirecting to login...");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      const logoutRes = await fetch("http://localhost:8000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
       window.location.href = "/signin"; 
       return res;
     }
