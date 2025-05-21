@@ -40,6 +40,10 @@
     .main-outlet {
         padding: 0.5rem;
     }
+
+    .main-outlet[class*="none"] {
+        display: none;
+    }
 }
 
 @media (min-width: 1025px) {

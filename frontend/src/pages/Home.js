@@ -141,7 +141,11 @@ const Home = () => {
 
             <div className="home-content">
                 <SidebarLeft isMobile={isMobile} leftBar={leftBar} />
-                <div className="main-outlet">
+                <div
+                    className={`main-outlet ${
+                        isMobile ? (currentSong ? "none" : "") : ""
+                    }`}
+                >
                     <Outlet />
                 </div>
                 <RightContent currentSong={currentSong} />
