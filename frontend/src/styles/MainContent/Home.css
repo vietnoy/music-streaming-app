@@ -5,18 +5,57 @@
     background-color: #000; /* Spotify dark background */
     color: white;
     margin: 0px;
-  }
-  
-  .home-content {
+}
+
+.home-content {
     display: flex;
     flex: 1;
     overflow: hidden;
-  }
-  
-  .main-outlet {
+}
+
+.main-outlet {
     flex: 1;
     overflow-y: auto;
     background-color: #121212;
     border-radius: 10px;
     margin: 0px 10px 10px 0;
-  }
+}
+
+@media (max-width: 1024px) {
+    .home-content {
+        flex-direction: column;
+        width: 100vw;
+    }
+
+    .sidebar-left,
+    .right-content {
+        display: none;
+    }
+
+    .sidebar-left[class*="show-left-bar"] {
+        position: absolute;
+        display: block;
+    }
+
+    .main-outlet {
+        padding: 0.5rem;
+    }
+
+    .main-outlet[class*="none"] {
+        display: none;
+    }
+}
+
+@media (min-width: 1025px) {
+    .sidebar-left {
+        width: 240px;
+        flex-shrink: 0;
+        border-right: 1px solid #ccc;
+    }
+
+    .right-content {
+        width: 300px;
+        flex-shrink: 0;
+        border-left: 1px solid #ccc;
+    }
+}

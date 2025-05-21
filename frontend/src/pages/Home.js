@@ -7,114 +7,167 @@ import MusicPlayer from "../components/MusicPlayer";
 import { usePlayer } from "../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
 import "../styles/MainContent/Home.css";
-import { authFetch } from '../utils/authFetch';
+import { authFetch } from "../utils/authFetch";
 
 const Home = () => {
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userId = token ? jwtDecode(token)?.sub : null;
-  const username = user?.username || "Guest";
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+    const userId = token ? jwtDecode(token)?.sub : null;
+    const username = user?.username || "Guest";
 
-  const [likedTrackIds, setLikedTrackIds] = useState([]);
-  const [userPlaylists, setUserPlaylists] = useState([]);
-  const { currentSong, isPlaying, playSong, stop, nextSong, prevSong } = usePlayer();
+    const [likedTrackIds, setLikedTrackIds] = useState([]);
+    const [userPlaylists, setUserPlaylists] = useState([]);
+    const [leftBar, setLeftBar] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+    const { currentSong, isPlaying, playSong, stop, nextSong, prevSong } =
+        usePlayer();
 
-  // Fetch liked tracks
-  useEffect(() => {
-    const fetchLikedTracks = async () => {
-      try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
-        const data = await res.json();
-        setLikedTrackIds(data);
-      } catch (err) {
-        console.error("Failed to fetch liked tracks:", err);
-      }
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth <= 1024);
+            if (window.innerWidth <= 1024) {
+                setLeftBar(false);
+            } else {
+                setLeftBar(true);
+            }
+        };
+
+        // Set initial value
+        checkIfMobile();
+
+        // Add event listener for window resize
+        window.addEventListener("resize", checkIfMobile);
+
+        // Cleanup
+        return () => window.removeEventListener("resize", checkIfMobile);
+    }, []);
+
+    const toggleLeftbar = () => {
+        setLeftBar(!leftBar);
     };
 
-    if (userId) fetchLikedTracks();
-  }, [userId]);
+    // Fetch liked tracks
+    useEffect(() => {
+        const fetchLikedTracks = async () => {
+            try {
+                const res = await authFetch(
+                    `http://localhost:8000/api/music/user/${userId}/liked_track_ids`
+                );
+                const data = await res.json();
+                setLikedTrackIds(data);
+            } catch (err) {
+                console.error("Failed to fetch liked tracks:", err);
+            }
+        };
 
-  // Fetch user's custom playlists (excluding 'Liked Songs')
-  useEffect(() => {
-    const fetchPlaylists = async () => {
-      try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
-        const data = await res.json();
-        const customPlaylists = data.filter((pl) => pl.name !== "Liked Songs");
-        setUserPlaylists(customPlaylists);
-      } catch (err) {
-        console.error("Failed to fetch playlists:", err);
-      }
+        if (userId) fetchLikedTracks();
+    }, [userId]);
+
+    // Fetch user's custom playlists (excluding 'Liked Songs')
+    useEffect(() => {
+        const fetchPlaylists = async () => {
+            try {
+                const res = await authFetch(
+                    `http://localhost:8000/api/music/user_playlist?user_id=${userId}`
+                );
+                const data = await res.json();
+                const customPlaylists = data.filter(
+                    (pl) => pl.name !== "Liked Songs"
+                );
+                setUserPlaylists(customPlaylists);
+            } catch (err) {
+                console.error("Failed to fetch playlists:", err);
+            }
+        };
+
+        if (userId) fetchPlaylists();
+    }, [userId]);
+
+    const handleToggleLike = async () => {
+        if (!currentSong || !userId) return;
+        const isLiked = likedTrackIds.includes(currentSong.id);
+        const method = isLiked ? "DELETE" : "POST";
+
+        try {
+            await authFetch(
+                `http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${currentSong.id}`,
+                {
+                    method,
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            setLikedTrackIds((prev) =>
+                isLiked
+                    ? prev.filter((id) => id !== currentSong.id)
+                    : [...prev, currentSong.id]
+            );
+        } catch (err) {
+            console.error("Failed to toggle like:", err);
+        }
     };
 
-    if (userId) fetchPlaylists();
-  }, [userId]);
+    const handleAddTrackToPlaylist = async (trackId, playlistId) => {
+        try {
+            await authFetch(
+                `http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        track_id: trackId,
+                        playlist_id: playlistId,
+                    }),
+                }
+            );
 
-  const handleToggleLike = async () => {
-    if (!currentSong || !userId) return;
-    const isLiked = likedTrackIds.includes(currentSong.id);
-    const method = isLiked ? "DELETE" : "POST";
+            console.log("Track added to playlist");
+        } catch (err) {
+            console.error("Failed to add track to playlist:", err);
+        }
+    };
 
-    try {
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${currentSong.id}`, {
-        method,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    return (
+        <div className="home">
+            <Navbar
+                username={username}
+                toggleLeftbar={toggleLeftbar}
+                isMobile={isMobile}
+                leftBar={leftBar}
+            />
 
-      setLikedTrackIds((prev) =>
-        isLiked ? prev.filter((id) => id !== currentSong.id) : [...prev, currentSong.id]
-      );
-    } catch (err) {
-      console.error("Failed to toggle like:", err);
-    }
-  };
+            <div className="home-content">
+                <SidebarLeft isMobile={isMobile} leftBar={leftBar} />
+                <div
+                    className={`main-outlet ${
+                        isMobile ? (currentSong ? "none" : "") : ""
+                    }`}
+                >
+                    <Outlet />
+                </div>
+                <RightContent currentSong={currentSong} />
+            </div>
 
-  const handleAddTrackToPlaylist = async (trackId, playlistId) => {
-    try {
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ track_id: trackId, playlist_id: playlistId }),
-      });
-
-      console.log("Track added to playlist");
-    } catch (err) {
-      console.error("Failed to add track to playlist:", err);
-    }
-  };
-
-  return (
-    <div className="home">
-      <Navbar username={username} />
-
-      <div className="home-content">
-        <SidebarLeft />
-        <div className="main-outlet">
-          <Outlet />
+            <MusicPlayer
+                currentSong={currentSong}
+                isPlaying={isPlaying}
+                onPlayPause={() => {
+                    if (isPlaying) stop();
+                    else playSong(currentSong);
+                }}
+                onNext={nextSong}
+                onPrev={prevSong}
+                likedTrackIds={likedTrackIds}
+                userPlaylists={userPlaylists}
+                onToggleLike={handleToggleLike}
+                onAddTrackToPlaylist={handleAddTrackToPlaylist}
+                onToggleFullscreen={() => alert("Fullscreen not implemented")}
+            />
         </div>
-        <RightContent currentSong={currentSong} />
-      </div>
-
-      <MusicPlayer
-        currentSong={currentSong}
-        isPlaying={isPlaying}
-        onPlayPause={() => {
-          if (isPlaying) stop();
-          else playSong(currentSong);
-        }}
-        onNext={nextSong}
-        onPrev={prevSong}
-        likedTrackIds={likedTrackIds}
-        userPlaylists={userPlaylists}
-        onToggleLike={handleToggleLike}
-        onAddTrackToPlaylist={handleAddTrackToPlaylist}
-        onToggleFullscreen={() => alert("Fullscreen not implemented")}
-      />
-    </div>
-  );
+    );
 };
 
 export default Home;
