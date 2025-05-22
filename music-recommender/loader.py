@@ -20,7 +20,7 @@ class Recommender:
     def load_data(self):
         client = self.get_client()
         bucket = client.bucket("music-12345")
-        blob = bucket.blob("dataset.csv")
+        blob = bucket.blob("dataset1.csv")
         return pd.read_csv(BytesIO(blob.download_as_bytes()))
 
     def load_faiss_index(self):
