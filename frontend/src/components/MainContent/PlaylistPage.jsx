@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import { FaPlay } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
 import { authFetch } from '../../utils/authFetch';
-
+import { API_ENDPOINTS } from '../../config';
 const PlaylistPage = () => {
   const { playlistId } = useParams();
   const [playlist, setPlaylist] = useState(null);
@@ -27,7 +27,7 @@ const PlaylistPage = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;  
-      await authFetch(`http://localhost:8000/api/music/user/playlist/${playlistId}`, {
+      await authFetch(`${API_ENDPOINTS.MUSIC.USER_PLAYLIST}/${playlistId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -46,7 +46,7 @@ const PlaylistPage = () => {
   
     try {
       const token = localStorage.getItem("token");
-      await fetch(`http://localhost:8000/api/music/playlist/${playlistId}/edit`, {
+      await fetch(`${API_ENDPOINTS.MUSIC.PLAYLIST}/${playlistId}/edit`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`
@@ -64,7 +64,7 @@ const PlaylistPage = () => {
   playlist?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
 
   const fetchMp3Url = async (trackName) => {
-    const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(trackName)}`);
+    const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(trackName)}`);
     const data = await res.json();
     return data.url;
   };
@@ -110,7 +110,7 @@ const PlaylistPage = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(
-        `http://localhost:8000/api/music/playlist/${playlistId}/remove_track?track_id=${trackId}`,
+        `${API_ENDPOINTS.MUSIC.PLAYLIST}/${playlistId}/remove_track?track_id=${trackId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` }
@@ -147,12 +147,12 @@ const PlaylistPage = () => {
   useEffect(() => {
     const fetchPlaylist = async () => {
       try {
-        const playlistRes = await fetch(`http://localhost:8000/api/music/playlist/${playlistId}`);
+        const playlistRes = await fetch(`${API_ENDPOINTS.MUSIC.PLAYLIST}/${playlistId}`);
         const playlistData = await playlistRes.json();
 
         console.log(playlistData)
 
-        const songRes = await fetch(`http://localhost:8000/api/music/playlist/${playlistId}/songs`);
+        const songRes = await fetch(`${API_ENDPOINTS.MUSIC.PLAYLIST}/${playlistId}/songs`);
         const songData = await songRes.json();
 
         const formattedTracks = Array.isArray(songData)
@@ -275,7 +275,7 @@ const PlaylistPage = () => {
             playSong(enrichedFirst, rest);
 
             try {
-              await authFetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+              await authFetch(`${API_ENDPOINTS.MUSIC.LIBRARY}/${playlistId}/last_played`, {
                 method: "PUT",
                 headers: {
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -325,7 +325,7 @@ const PlaylistPage = () => {
                             await playSongFrom(track.id);
 
                             try {
-                              await authFetch(`http://localhost:8000/api/music/library/${playlistId}/last_played`, {
+                              await authFetch(`${API_ENDPOINTS.MUSIC.LIBRARY}/${playlistId}/last_played`, {
                                 method: "PUT",
                                 headers: {
                                   Authorization: `Bearer ${localStorage.getItem("token")}`,

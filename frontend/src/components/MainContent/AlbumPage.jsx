@@ -6,6 +6,7 @@ import { usePlayer } from "../../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
 import SkeletonLoader from "../SkeletonLoader";
 import { authFetch } from '../../utils/authFetch';
+import { API_ENDPOINTS } from '../../config';
 
 const AlbumPage = () => {
   const { albumId } = useParams();
@@ -48,23 +49,26 @@ const AlbumPage = () => {
   };
 
   const toggleLike = async (trackId) => {
+    const isLiked = likedTrackIds.includes(trackId);
+    setLikedTrackIds((prev) =>
+      isLiked ? prev.filter((id) => id !== trackId) : [...prev, trackId]
+    );
+
     try {
-      const method = likedTrackIds.includes(trackId) ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/liked_track?track_id=${trackId}`, {
-        method: method,
+      const method = isLiked ? "DELETE" : "POST";
+      await authFetch(`${API_ENDPOINTS.MUSIC.LIKED_TRACKS}?track_id=${trackId}`, {
+        method,
         headers: { Authorization: `Bearer ${token}` },
       });
-
+    } catch {
       setLikedTrackIds((prev) =>
-        method === "POST" ? [...prev, trackId] : prev.filter((id) => id !== trackId)
+        isLiked ? [...prev, trackId] : prev.filter((id) => id !== trackId)
       );
-    } catch (error) {
-      console.error("Error toggling like:", error);
     }
   };
 
   const fetchMp3Url = async (title) => {
-    const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(title)}`);
+    const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(title)}`);
     const data = await res.json();
     return data.url;
   };
@@ -91,7 +95,7 @@ const AlbumPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
+      await authFetch(API_ENDPOINTS.MUSIC.ADD_TO_PLAYLIST, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -107,74 +111,60 @@ const AlbumPage = () => {
   };
 
   useEffect(() => {
-    const fetchAlbum = async () => {
+    const fetchAll = async () => {
       try {
-        const [albumRes, songRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/music/album/${albumId}`),
-          fetch(`http://localhost:8000/api/music/album/${albumId}/songs`),
+        const [albumInfoRes, songsRes] = await Promise.all([
+          fetch(`${API_ENDPOINTS.MUSIC.ALBUM}/${albumId}`),
+          fetch(`${API_ENDPOINTS.MUSIC.ALBUM}/${albumId}/songs`),
         ]);
-        const albumData = await albumRes.json();
-        const songData = await songRes.json();
+        const albumData = await albumInfoRes.json();
+        const tracks = await songsRes.json();
 
-        const formattedTracks = songData.map((song) => ({
-          id: song.id,
-          track_name: song.title,
-          artist_name: song.artist,
-          album: song.album,
-          duration: song.duration,
-          image_url: song.cover_url,
-          date_added: song.date_added,
-          album_id: song.album_id,
+        const formatted = tracks.map((t) => ({
+          id: t.id,
+          track_name: t.title,
+          artist_name: t.artist,
+          album: t.album,
+          album_id: t.album_id,
+          duration: t.duration,
+          image_url: t.cover_url,
         }));
 
         setAlbum({
-          id: albumData.id,
+          id: albumId,
           name: albumData.name,
-          artist: albumData.artist_name,
-          artist_id: albumData.artist_id,
           image: albumData.cover_image_url,
-          tracks: formattedTracks,
+          tracks: formatted,
         });
       } catch (err) {
-        console.error("Failed to fetch album:", err);
+        console.error("Failed to fetch album data:", err);
       }
     };
 
-    fetchAlbum();
+    fetchAll();
   }, [albumId]);
 
   useEffect(() => {
-    const fetchLikedTracks = async () => {
-      try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/liked_track_ids`);
-        const data = await res.json();
-        setLikedTrackIds(data);
-      } catch (err) {
-        console.error("Failed to fetch liked songs", err);
-      }
-    };
-
-    if (userId) fetchLikedTracks();
+    if (!userId) return;
+    authFetch(API_ENDPOINTS.MUSIC.LIKED_TRACKS_IDS)
+      .then((res) => res.json())
+      .then(setLikedTrackIds)
+      .catch(console.error);
   }, [userId]);
 
   useEffect(() => {
-    const fetchUserPlaylists = async () => {
-      try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
-        const data = await res.json();
-        if (album?.id) {
-          setIsAdded(data.some(item => item.id === album.id));
-        }
-        const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
+    if (!userId || !album) return;
+    authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST)
+      .then((res) => res.json())
+      .then((data) => {
+        const filtered = data.filter((pl) => pl.name !== "Liked Songs");
         setUserPlaylists(filtered);
-      } catch (err) {
-        console.error("Failed to fetch user playlists", err);
-      }
-    };
   
-    if (userId && album?.id) {
-      fetchUserPlaylists();
-    }
+        // Check if album is added to library
+        const isInLibrary = data.some(item => item.id === album.id);
+        setIsAdded(isInLibrary);
+      })
+      .catch(console.error);
   }, [userId, album]);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/SignIn/SignIn.css";
+import { API_ENDPOINTS } from '../config';
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -32,7 +33,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/signin", {
+      const response = await fetch(API_ENDPOINTS.AUTH.SIGNIN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

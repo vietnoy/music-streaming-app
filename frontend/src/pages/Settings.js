@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 import "../styles/MainContent/Settings.css";
 import { authFetch } from "../utils/authFetch";
+import { API_ENDPOINTS } from '../config';
 
-const API_BASE = "http://localhost:8000/api/user";
 const tabs = ["Account", "Security"];
 
 const SettingsPage = () => {
@@ -16,7 +16,7 @@ const SettingsPage = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    authFetch(`${API_BASE}/me`, {
+    authFetch(API_ENDPOINTS.USER.ME, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -32,7 +32,7 @@ const SettingsPage = () => {
 
   const handleAccountSubmit = (e) => {
     e.preventDefault();
-    authFetch(`${API_BASE}/me`, {
+    authFetch(API_ENDPOINTS.USER.ME, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +47,7 @@ const SettingsPage = () => {
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
-    authFetch(`${API_BASE}/me/password`, {
+    authFetch(API_ENDPOINTS.USER.PASSWORD, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

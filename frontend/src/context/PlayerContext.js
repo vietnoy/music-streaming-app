@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext } from "react";
 import { useEffect } from "react";
+import { API_ENDPOINTS } from '../config';
+
 const PlayerContext = createContext();
 
 export const usePlayer = () => useContext(PlayerContext);
@@ -36,7 +38,7 @@ export const PlayerProvider = ({ children }) => {
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(next.track_name)}`);
+      const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(next.track_name)}`);
       const data = await res.json();
       const enrichedNext = { ...next, mp3_url: data.url };
 
@@ -59,7 +61,7 @@ export const PlayerProvider = ({ children }) => {
     const newQueue = currentSong ? [currentSong, ...queue] : queue;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(previous.track_name)}`);
+      const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(previous.track_name)}`);
       const data = await res.json();
       const enrichedPrev = { ...previous, mp3_url: data.url };
 

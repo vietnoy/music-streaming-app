@@ -4,6 +4,7 @@ import RecommendSongs from "./RecommendSongs";
 import "../../styles/MainContent/MainContent.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
+import { API_ENDPOINTS } from '../../config';
 
 const MainContent = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -17,7 +18,7 @@ const MainContent = () => {
 
     const fetchPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
+        const res = await authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST);
         const data = await res.json();
 
         // Separate data by type
@@ -27,12 +28,12 @@ const MainContent = () => {
             let title = item.name;
         
             if (item.type === "artist") {
-              const res = await fetch(`http://localhost:8000/api/music/artist/${item.id}`);
+              const res = await fetch(`${API_ENDPOINTS.MUSIC.ARTIST}/${item.id}`);
               const data = await res.json();
               image = data.profile_image_url;
               title = data.name;
             } else if (item.type === "single" || item.type === "composite") {
-              const res = await fetch(`http://localhost:8000/api/music/album/${item.id}`);
+              const res = await fetch(`${API_ENDPOINTS.MUSIC.ALBUM}/${item.id}`);
               const data = await res.json();
               image = data.cover_image_url;
               title = data.name;
@@ -57,7 +58,7 @@ const MainContent = () => {
         setSavedAlbums(formatted.filter((item) => item.type === "single" || item.type === "composite"));
         setLikedArtists(formatted.filter((item) => item.type === "artist"));
       } catch (err) {
-        console.error("Failed to fetch user library:", err);
+        console.error("Failed to fetch playlists:", err);
       }
     };
 

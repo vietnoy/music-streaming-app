@@ -8,6 +8,7 @@ import { usePlayer } from "../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
 import "../styles/MainContent/Home.css";
 import { authFetch } from '../utils/authFetch';
+import { API_ENDPOINTS } from '../config';
 
 const Home = () => {
   const token = localStorage.getItem("token");
@@ -24,7 +25,7 @@ const Home = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/liked_track_ids`);
+        const res = await authFetch(API_ENDPOINTS.MUSIC.LIKED_TRACKS_IDS);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -39,7 +40,7 @@ const Home = () => {
   useEffect(() => {
     const fetchPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
+        const res = await authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST);
         const data = await res.json();
         const customPlaylists = data.filter((pl) => pl.name !== "Liked Songs");
         setUserPlaylists(customPlaylists);
@@ -57,7 +58,7 @@ const Home = () => {
     const method = isLiked ? "DELETE" : "POST";
 
     try {
-      await authFetch(`http://localhost:8000/api/music/user/liked_track?track_id=${currentSong.id}`, {
+      await authFetch(`${API_ENDPOINTS.MUSIC.LIKED_TRACKS}?track_id=${currentSong.id}`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -72,7 +73,7 @@ const Home = () => {
 
   const handleAddTrackToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
+      await authFetch(API_ENDPOINTS.MUSIC.ADD_TO_PLAYLIST, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

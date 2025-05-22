@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import "../styles/RightContent.css";
-// import { FaPlay } from "react-icons/fa";
+import { FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 import { usePlayer } from "../context/PlayerContext";
 import { FaTimes } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../utils/authFetch';
+import { API_ENDPOINTS } from '../config';
 
 const RightContent = ({ currentSong, isQueueVisible }) => {
   const [relatedSongs, setRelatedSongs] = useState([]);
@@ -15,10 +16,11 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
   const token = localStorage.getItem("token");
   const userId = token ? jwtDecode(token)?.sub : null;
   const { playSong, queue, setQueue, isPlaying, removeFromQueue } = usePlayer();
+  const [likedTrackIds, setLikedTrackIds] = useState([]);
 
   const fetchMp3Url = async (trackName) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(trackName)}`);
+      const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(trackName)}`);
       const data = await res.json();
       return data.url;
     } catch (err) {
@@ -47,7 +49,7 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
 
     const fetchRelated = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/music/related/${currentSong.id}`);
+        const res = await fetch(`${API_ENDPOINTS.MUSIC.RELATED}/${currentSong.id}`);
         const data = await res.json();
         if (Array.isArray(data)) {
           setRelatedSongs(data);
@@ -65,7 +67,7 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
+        const res = await authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST);
         const data = await res.json();
         const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
         setUserPlaylists(filtered);
@@ -113,7 +115,7 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
+      await authFetch(API_ENDPOINTS.MUSIC.ADD_TO_PLAYLIST, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -127,6 +129,33 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
       setOpenMenuId(null);
     }
   };
+
+  const toggleLike = async (trackId) => {
+    const isLiked = likedTrackIds.includes(trackId);
+    setLikedTrackIds((prev) =>
+      isLiked ? prev.filter((id) => id !== trackId) : [...prev, trackId]
+    );
+
+    try {
+      const method = isLiked ? "DELETE" : "POST";
+      await authFetch(`${API_ENDPOINTS.MUSIC.LIKED_TRACKS}?track_id=${trackId}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      setLikedTrackIds((prev) =>
+        isLiked ? [...prev, trackId] : prev.filter((id) => id !== trackId)
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    authFetch(API_ENDPOINTS.MUSIC.LIKED_TRACKS)
+      .then((res) => res.json())
+      .then(setLikedTrackIds)
+      .catch(console.error);
+  }, [userId]);
 
   if (!currentSong) return null;
 

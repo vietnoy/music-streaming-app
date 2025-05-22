@@ -1,25 +1,27 @@
 FROM python:3.10-slim
 
-# Set working directory
+# Đặt thư mục làm việc trong container
 WORKDIR /app
 
-# Install system dependencies in one layer
+# Cloud Run cung cấp biến môi trường PORT, bạn đặt mặc định 8080
+ENV PORT=8080
+
+# Cài đặt các thư viện hệ thống cần thiết (nên gom chung để giảm layer)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
         libffi-dev \
         python3-dev \
         cargo \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install Python dependencies early to leverage caching
+# Copy file requirements để tận dụng cache khi build
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy toàn bộ source code vào container
 COPY . .
 
-# Run app (remove --reload for production)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Chạy ứng dụng với uvicorn, host 0.0.0.0 và port lấy từ biến môi trường
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]

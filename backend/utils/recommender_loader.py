@@ -1,6 +1,6 @@
 import os, pickle, faiss
 import pandas as pd
-from io import BytesIO
+from io import BytesIO, StringIO
 from google.cloud import storage, bigquery
 import tempfile
 
@@ -21,8 +21,11 @@ class Recommender:
         self.track_features = self.load_track_features()
 
     def load_data(self):
-        path = os.path.join(os.path.dirname(__file__), "..", "..", "airflow", "data", "dataset.csv")
-        return pd.read_csv(os.path.abspath(path))
+        blob = self.bucket.blob("dataset.csv")
+        if not blob.exists():
+            raise FileNotFoundError(f"File dataset.csv not found in bucket {self.bucket.name}.")
+        data = blob.download_as_string()  
+        return pd.read_csv(StringIO(data.decode('utf-8')))
 
     def load_faiss_index(self):
         blob = self.bucket.blob("music_index.index")

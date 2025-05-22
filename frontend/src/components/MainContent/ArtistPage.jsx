@@ -6,6 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import "../../styles/MainContent/PlaylistPage.css";
 import SkeletonLoader from "../SkeletonLoader";
 import { authFetch } from '../../utils/authFetch';
+import { API_ENDPOINTS } from '../../config';
 
 const ArtistPage = () => {
   const { artistId } = useParams();
@@ -21,7 +22,7 @@ const ArtistPage = () => {
   const { currentSong, isPlaying, playSong, stop, queue, setQueue } = usePlayer();
 
   const fetchMp3Url = async (title) => {
-    const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(title)}`);
+    const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(title)}`);
     const data = await res.json();
     return data.url;
   };
@@ -48,7 +49,7 @@ const ArtistPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
+      await authFetch(API_ENDPOINTS.MUSIC.ADD_TO_PLAYLIST, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -71,7 +72,7 @@ const ArtistPage = () => {
 
     try {
       const method = isLiked ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_ENDPOINTS.MUSIC.LIKED_TRACKS}?track_id=${trackId}`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -94,7 +95,7 @@ const ArtistPage = () => {
 
     if (isAdded) {
       try {
-        await authFetch(`http://localhost:8000/api/music/library/${artist.id}/last_played`, {
+        await authFetch(`${API_ENDPOINTS.MUSIC.LIBRARY}/${artist.id}/last_played`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -110,8 +111,8 @@ const ArtistPage = () => {
     const fetchAll = async () => {
       try {
         const [artistInfoRes, songsRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/music/artist/${artistId}`),
-          fetch(`http://localhost:8000/api/music/artist/${artistId}/songs`),
+          fetch(`${API_ENDPOINTS.MUSIC.ARTIST}/${artistId}`),
+          fetch(`${API_ENDPOINTS.MUSIC.ARTIST}/${artistId}/songs`),
         ]);
         const artistData = await artistInfoRes.json();
         const tracks = await songsRes.json();
@@ -142,7 +143,7 @@ const ArtistPage = () => {
 
   useEffect(() => {
     if (!userId) return;
-    authFetch(`http://localhost:8000/api/music/user/liked_track_ids`)
+    authFetch(API_ENDPOINTS.MUSIC.LIKED_TRACKS_IDS)
       .then((res) => res.json())
       .then(setLikedTrackIds)
       .catch(console.error);
@@ -150,7 +151,7 @@ const ArtistPage = () => {
 
   useEffect(() => {
     if (!userId || !artist) return;
-    authFetch(`http://localhost:8000/api/music/user_playlist`)
+    authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST)
       .then((res) => res.json())
       .then((data) => {
         const filtered = data.filter((pl) => pl.name !== "Liked Songs");
@@ -180,7 +181,7 @@ const ArtistPage = () => {
 
   const addArtist = async () => {
     try {
-      await authFetch(`http://localhost:8000/api/music/add_to_library/${artist.id}?type=artist`, {
+      await authFetch(`${API_ENDPOINTS.MUSIC.ADD_TO_LIBRARY}/${artist.id}?type=artist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -195,7 +196,7 @@ const ArtistPage = () => {
     
   const removeArtist = async () => {
     try {
-      await authFetch(`http://localhost:8000/api/music/remove_from_library/${artist.id}`, {
+      await authFetch(`${API_ENDPOINTS.MUSIC.REMOVE_FROM_LIBRARY}/${artist.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

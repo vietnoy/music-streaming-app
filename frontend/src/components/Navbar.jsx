@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/Navbar.css";
-import { FaBell, FaUserCircle, FaChevronDown, FaHome } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { FaBell, FaUserCircle, FaChevronDown, FaHome, FaSearch, FaMicrophone } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; 
-import { authFetch } from '../utils/authFetch';
+import { API_ENDPOINTS } from '../config';
 
 const Navbar = ({ username, profilePicture }) => {
   const location = useLocation();
@@ -64,7 +63,7 @@ const Navbar = ({ username, profilePicture }) => {
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
-    fetch("http://localhost:8000/api/auth/logout", {
+    fetch(API_ENDPOINTS.AUTH.LOGOUT, {
       method: "POST",
       credentials: "include",
     });
@@ -81,10 +80,15 @@ const Navbar = ({ username, profilePicture }) => {
       const formData = new FormData();
       formData.append('prompt', query);
 
-      const res = await fetch('http://localhost:8000/api/music/ask', {
+      const res = await fetch(API_ENDPOINTS.MUSIC.ASK, {
         method: 'POST',
         body: formData
       });
+      // const res = await fetch(`http://localhost:8000/api/music/ask`, {
+      //   method: 'POST',
+      //   body: formData
+      // });
+      
       
       const data = await res.json();
       navigate(`/search?query=${encodeURIComponent(query)}&filter_by=emotion&results=${encodeURIComponent(JSON.stringify(data))}`);

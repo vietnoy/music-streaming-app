@@ -3,6 +3,7 @@ import "../styles/SidebarLeft.css";
 import { FaPlus, FaAngleRight, FaAngleLeft, FaSearch, FaChevronDown} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { authFetch } from "../utils/authFetch";
+import { API_ENDPOINTS } from '../config';
 
 const SidebarLeft = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const SidebarLeft = () => {
         const user = JSON.parse(localStorage.getItem("user"));
         const userId = user?.id;
   
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`, {
+        const res = await authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -68,13 +69,13 @@ const SidebarLeft = () => {
         
             try {
               if (item.type === "artist") {
-                const res = await fetch(`http://localhost:8000/api/music/artist/${item.id}`);
+                const res = await fetch(`${API_ENDPOINTS.MUSIC.ARTIST}/${item.id}`);
                 const artistData = await res.json();
                 name = artistData.name;
                 owner = artistData.name;
                 image = artistData.profile_image_url;
               } else if (item.type === "single" || item.type === "composite") {
-                const res = await fetch(`http://localhost:8000/api/music/album/${item.id}`);
+                const res = await fetch(`${API_ENDPOINTS.MUSIC.ALBUM}/${item.id}`);
                 const albumData = await res.json();
                 name = albumData.name;
                 owner = albumData.artist_name;
@@ -160,7 +161,7 @@ const SidebarLeft = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
     
-      const res = await authFetch(`http://localhost:8000/api/music/user/create_playlist`, {
+      const res = await authFetch(API_ENDPOINTS.MUSIC.CREATE_PLAYLIST, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

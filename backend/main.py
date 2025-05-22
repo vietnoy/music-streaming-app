@@ -15,6 +15,8 @@ from routes.user_routes import router as user_router
 from utils.recommender_loader import recommender
 from routes.table_routes import router as database_router
 from routes.user_routes import router as user_router
+import os
+import uvicorn
 
 app = FastAPI()
 
@@ -38,8 +40,12 @@ app.include_router(database_router, prefix="/api/database")
 def root():
     return {"message": "Testing OK"}
 
-# @app.on_event("startup")
-# def startup_event():
-#     print("Loading models...")
-#     recommender.load()
-#     print("Done.")
+@app.on_event("startup")
+def startup_event():
+    print("Loading models...")
+    recommender.load()
+    print("Done.")
+
+# if __name__ == "__main__":
+#     port = int(os.environ.get("PORT", 8080))
+#     uvicorn.run("main:app", host="0.0.0.0", port=port)

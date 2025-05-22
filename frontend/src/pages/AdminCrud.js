@@ -4,8 +4,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from "../utils/authFetch";
-
-const API_BASE = "http://localhost:8000/api/database";
+import { API_ENDPOINTS } from '../config';
 
 const AdminCrud = () => {
   const [tables, setTables] = useState([]);
@@ -31,7 +30,7 @@ const AdminCrud = () => {
   }, []);
 
   useEffect(() => {
-    authFetch(`${API_BASE}/tables`, {
+    authFetch(`${API_ENDPOINTS.DATABASE.TABLES}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -48,7 +47,7 @@ const AdminCrud = () => {
   }, []);
 
   useEffect(() => {
-    authFetch(`${API_BASE}/overview`, {
+    authFetch(`${API_ENDPOINTS.DATABASE.OVERVIEW}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -64,7 +63,7 @@ const AdminCrud = () => {
   useEffect(() => {
     if (!selectedTable || selectedTable === "__overview__") return;
 
-    authFetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_ENDPOINTS.DATABASE.BASE}/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -76,7 +75,7 @@ const AdminCrud = () => {
         setData([]);
       });
 
-    authFetch(`${API_BASE}/tables/${selectedTable}/schema`, {
+    authFetch(`${API_ENDPOINTS.DATABASE.BASE}/tables/${selectedTable}/schema`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -106,7 +105,7 @@ const AdminCrud = () => {
     const cleanedFormData = { ...formData };
     if (editingId && primaryKey) delete cleanedFormData[primaryKey];
 
-    const url = `${API_BASE}/tables/${selectedTable}` + (editingId ? `/${editingId}` : "");
+    const url = `${API_ENDPOINTS.DATABASE.BASE}/tables/${selectedTable}` + (editingId ? `/${editingId}` : "");
     const method = editingId ? "PUT" : "POST";
 
     await authFetch(url, {
@@ -121,7 +120,7 @@ const AdminCrud = () => {
     setFormData({});
     setEditingId(null);
 
-    authFetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_ENDPOINTS.DATABASE.BASE}/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -142,14 +141,14 @@ const AdminCrud = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this row?")) return;
 
-    await authFetch(`${API_BASE}/tables/${selectedTable}/${id}`, {
+    await authFetch(`${API_ENDPOINTS.DATABASE.BASE}/tables/${selectedTable}/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
 
-    authFetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_ENDPOINTS.DATABASE.BASE}/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

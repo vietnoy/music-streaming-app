@@ -1,3 +1,5 @@
+import { API_ENDPOINTS } from '../config';
+
 export const authFetch = async (url, options = {}) => {
   const token = localStorage.getItem("token");
   const isFormData = options.body instanceof FormData;
@@ -12,7 +14,7 @@ export const authFetch = async (url, options = {}) => {
   });
 
   if (res.status === 401) {
-    const refreshRes = await fetch("http://localhost:8000/api/auth/refresh-token", {
+    const refreshRes = await fetch(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
       method: "POST",
       credentials: "include",
     });
@@ -21,7 +23,7 @@ export const authFetch = async (url, options = {}) => {
       console.warn("Refresh token failed. Redirecting to login...");
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      const logoutRes = await fetch("http://localhost:8000/api/auth/logout", {
+      const logoutRes = await fetch(API_ENDPOINTS.AUTH.LOGOUT, {
         method: "POST",
         credentials: "include",
       });

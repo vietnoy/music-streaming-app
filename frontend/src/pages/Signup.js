@@ -3,6 +3,7 @@ import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import "../styles/SignUp/SignUp.css";
 import { components } from 'react-select';
+import { API_ENDPOINTS } from '../config';
 
 const DropdownIndicator = (props) => {
   const { menuIsOpen } = props.selectProps;
@@ -66,7 +67,7 @@ const Signup = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/signup", {
+      const response = await fetch(API_ENDPOINTS.AUTH.SIGNUP, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, username, birthdate, gender })

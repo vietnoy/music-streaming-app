@@ -7,6 +7,7 @@ import "../../styles/MainContent/PlaylistPage.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
 import { Link } from "react-router-dom";
+import { API_ENDPOINTS } from '../../config';
 
 
 const SearchPage = () => {
@@ -69,7 +70,7 @@ useEffect(() => {
           const mood = JSON.parse(jsonStr).mood;
           console.log("Mood:", mood);
 
-          const res = await authFetch(`http://localhost:8000/api/music/recommendations/emotion/${mood}`);
+          const res = await authFetch(`${API_ENDPOINTS.MUSIC.EMOTION_RECOMMENDATIONS}/${mood}`);
           const data = await res.json();
 
           setResults(data);
@@ -103,7 +104,7 @@ useEffect(() => {
   
     try {
       // Fetch mp3_url for the track
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.title)}`);
+      const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(track.title)}`);
       const data = await res.json();
       const enrichedTrack = {
         id: track.id,
@@ -132,7 +133,7 @@ useEffect(() => {
   const addToPlaylist = async (trackId, playlistId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await authFetch(`http://localhost:8000/api/music/user/add_track_to_playlist`, {
+      const response = await authFetch(API_ENDPOINTS.MUSIC.ADD_TO_PLAYLIST, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -165,15 +166,15 @@ useEffect(() => {
   
     if (!trimmedQuery) {
       setResults([]);
-      setIsLoading(false); // stop loading if query is empty
+      setIsLoading(false);
       return;
     }
   
     const fetchResults = async () => {
-      setIsLoading(true); // Show shimmer
+      setIsLoading(true);
   
       try {
-        const res = await fetch(`http://localhost:8000/api/music/search?query=${encodeURIComponent(query)}&filter_by=${filterBy}`);
+        const res = await fetch(`${API_ENDPOINTS.MUSIC.SEARCH}?query=${encodeURIComponent(query)}&filter_by=${filterBy}`);
         const data = await res.json();
   
         if (Array.isArray(data)) {
@@ -186,7 +187,7 @@ useEffect(() => {
         console.error("Search failed", err);
         setResults([]);
       } finally {
-        setIsLoading(false); // Hide shimmer
+        setIsLoading(false);
       }
     };
   
@@ -213,7 +214,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/liked_track_ids`);
+        const res = await authFetch(API_ENDPOINTS.MUSIC.LIKED_TRACKS_IDS);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -227,7 +228,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist`);
+        const res = await authFetch(API_ENDPOINTS.MUSIC.USER_PLAYLIST);
         const data = await res.json();
         // Exclude "Liked Songs"
         const filtered = data.filter((pl) => pl.name !== "Liked Songs");
@@ -248,7 +249,7 @@ useEffect(() => {
   
     try {
       const method = isLiked ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_ENDPOINTS.MUSIC.LIKED_TRACKS}?track_id=${trackId}`, {
         method: method,
         headers: {
           "Authorization": `Bearer ${token}`
@@ -350,7 +351,7 @@ useEffect(() => {
                                       className="play-icon-row"
                                       onClick={async () => {
                                         try {
-                                          const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.title)}`);
+                                          const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(track.title)}`);
                                           const data = await res.json();
                                           const enriched = {
                                             id: track.id,
@@ -478,7 +479,7 @@ useEffect(() => {
                               className="play-icon-row"
                               onClick={async () => {
                                 try {
-                                  const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.title)}`);
+                                  const res = await fetch(`${API_ENDPOINTS.MUSIC.MP3_URL}/${encodeURIComponent(track.title)}`);
                                   const data = await res.json();
                                   const enriched = {
                                     id: track.id,
