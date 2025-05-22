@@ -47,7 +47,6 @@ const SearchPage = () => {
       const decodedResults = decodeURIComponent(resultsParam);
       const parsedResults = JSON.parse(decodedResults);
       if (parsedResults.reply) {
-        // Extract the JSON string from the markdown code block
         const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
         return JSON.parse(jsonStr);
       }
@@ -57,6 +56,46 @@ const SearchPage = () => {
       return null;
     }
   };
+
+useEffect(() => {
+  const fetchEmotionResults = async () => {
+    if (filterBy === "emotion" && resultsParam) {
+      try {
+        const decodedResults = decodeURIComponent(resultsParam);
+        const parsedResults = JSON.parse(decodedResults);
+
+        if (parsedResults.reply) {
+          const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
+          const mood = JSON.parse(jsonStr).mood;
+          console.log("Mood:", mood);
+
+          const res = await authFetch(`http://localhost:8000/api/music/recommendations/emotion/${mood}`);
+          const data = await res.json();
+
+          setResults(data);
+          console.log("Emotion results:", data);
+        }
+      } catch (err) {
+        console.error("Lỗi khi fetch emotion results:", err);
+      }
+    }
+  };
+
+  fetchEmotionResults(); 
+}, [query]); 
+
+
+  // const handleKeyDown = async (e) => {
+  //   if (e.key === 'Enter' && filterBy === "emotion") {
+  //     const decodedResults = decodeURIComponent(resultsParam);
+  //     const parsedResults = JSON.parse(decodedResults);
+  //     const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
+  //     const res = authFetch.get(`http://localhost:8000/api/music/recommendations/emotion/${JSON.parse(jsonStr).mood}`);
+  //     const data = res.json();
+  //     setResults(data);
+  //     console.log("Emotion results:", data);
+  //   }
+  // };
 
   const addToQueue = async (trackId) => {
     const track = results.find((t) => t.id === trackId);
@@ -271,13 +310,138 @@ const SearchPage = () => {
                 return <div className="no-results">No emotion analysis available</div>;
               }
               return (
-                <div className="emotion-response">
-                  <div className="emotion-intro">{emotionData.intro}</div>
-                  <div className="emotion-mood">
-                    <span className="mood-label">Detected Mood:</span>
-                    <span className="mood-value">{emotionData.mood}</span>
+                <>
+                  <div className="emotion-response">
+                    <div className="emotion-intro">{emotionData.intro}</div>
+                    <div className="emotion-mood">
+                      <span className="mood-label">Detected Mood:</span>
+                      <span className="mood-value">{emotionData.mood}</span>
+                    </div>
                   </div>
-                </div>
+                  <table className="track-table">
+                    <thead>
+                      <tr>
+                        <th className="col-number">#</th>
+                        <th className="col-title">Title</th>
+                        <th className="col-album">Album</th>
+                        <th className="col-duration">Duration</th>
+                        <th className="col-like"></th>
+                        <th className="col-option"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((track, i) => {
+                        const isLiked = likedTrackIds.includes(track.id);
+                        const isCurrent = currentSong?.id === track.id;
+                        return (
+                          <tr key={track.id} className={isCurrent && isPlaying ? "playing" : ""}>
+                            <td className="col-number">
+                              <div className="row-number-wrapper">
+                                {isCurrent && isPlaying ? (
+                                  <div className="playing-bars">
+                                    <span className="bar bar1"></span>
+                                    <span className="bar bar2"></span>
+                                    <span className="bar bar3"></span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="track-number">{i + 1}</span>
+                                    <FaPlay
+                                      className="play-icon-row"
+                                      onClick={async () => {
+                                        try {
+                                          const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.title)}`);
+                                          const data = await res.json();
+                                          const enriched = {
+                                            id: track.id,
+                                            track_name: track.title,
+                                            artist_name: track.artist,
+                                            album: track.album,
+                                            image_url: track.cover_url,
+                                            duration: track.duration,
+                                            mp3_url: data.url,
+                                          };
+                                          playSong(enriched);
+                                        } catch (err) {
+                                          console.error("Failed to fetch mp3_url:", err);
+                                        }
+                                      }}
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                            <td className="track-title-cell col-date">
+                              <img src={track.cover_url} alt={track.title} className="track-image" />
+                              <div className="track-info">
+                                <p className="track-title">{track.title}</p>
+                                <span className="track-artist">
+                                  {(track.artist?.split(", ") || []).map((name, idx) => {
+                                    const ids = track.artist_id?.split(", ");
+                                    const artistId = ids?.[idx];
+                                    return (
+                                      <React.Fragment key={idx}>
+                                        {artistId ? (
+                                          <Link to={`/artist/${artistId}`}>{name}</Link>
+                                        ) : (
+                                          name
+                                        )}
+                                        {idx < track.artist.split(", ").length - 1 && ", "}
+                                      </React.Fragment>
+                                    );
+                                  })}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="col-album">
+                              <Link to={`/album/${track.album_id}`}>{track.album}</Link>
+                            </td>
+                            <td className="col-duration">{track.duration}</td>
+                            <td className="col-like">
+                              <button className="add-btn" onClick={() => toggleLike(track.id)}>
+                                {isLiked ? <FaHeart color="#1DB954" /> : <FaRegHeart />}
+                              </button>
+                            </td>
+                            <td className="track-options col-option">
+                              <div className="options-wrapper" ref={(el) => (menuRefs.current[track.id] = el)}>
+                                <button className="options-button" onClick={() => setOpenMenuId(track.id)}>
+                                  &#x22EE;
+                                </button>
+                                {openMenuId === track.id && (
+                                  <div className="options-menu show">
+                                    <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
+                                    <div 
+                                      className="playlist-submenu"
+                                      onMouseEnter={() => setHoveredTrackId(track.id)}
+                                      onMouseLeave={() => setHoveredTrackId(null)}
+                                    >
+                                      <button>Add to Playlist</button>
+                                      {hoveredTrackId === track.id && userPlaylists.length > 0 && (
+                                        <div className="playlist-options" onMouseEnter={() => setHoveredTrackId(track.id)}>
+                                          {userPlaylists
+                                          .filter((pl) => pl.type === "playlist")
+                                          .map((pl) => (
+                                            <div
+                                              key={pl.id}
+                                              className="playlist-item"
+                                              onClick={() => addToPlaylist(track.id, pl.id)}
+                                            >
+                                              {pl.name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
               );
             })()}
           </div>
