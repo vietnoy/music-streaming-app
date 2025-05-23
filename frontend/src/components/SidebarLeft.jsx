@@ -160,7 +160,10 @@ const SidebarLeft = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
-    
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+      
       const res = await authFetch(API_ENDPOINTS.MUSIC.CREATE_PLAYLIST, {
         method: "POST",
         headers: {
@@ -171,8 +174,8 @@ const SidebarLeft = () => {
   
       if (!res.ok) throw new Error("Failed to create playlist");
       for (let [key, value] of formData.entries()) {
-  console.log(`${key}: ${value}`);
-}
+        console.log(`${key}: ${value}`);
+      }
 
       alert("Playlist created!");
       setShowCreateForm(false);
