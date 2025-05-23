@@ -31,7 +31,7 @@ const AdminCrud = () => {
   });
 
   useEffect(() => {
-    authFetch(`${API_BASE}/tables`, {
+    authFetch(`${API_BASE}/api/database/tables`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -48,7 +48,7 @@ const AdminCrud = () => {
   }, []);
 
   useEffect(() => {
-    authFetch(`${API_BASE}/overview`, {
+    authFetch(`${API_BASE}/api/database/overview`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -64,7 +64,7 @@ const AdminCrud = () => {
   useEffect(() => {
     if (!selectedTable || selectedTable === "__overview__") return;
 
-    authFetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_BASE}/api/database/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -76,7 +76,7 @@ const AdminCrud = () => {
         setData([]);
       });
 
-    authFetch(`${API_BASE}/tables/${selectedTable}/schema`, {
+    authFetch(`${API_BASE}/api/database/tables/${selectedTable}/schema`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -106,7 +106,7 @@ const AdminCrud = () => {
     const cleanedFormData = { ...formData };
     if (editingId && primaryKey) delete cleanedFormData[primaryKey];
 
-    const url = `${API_BASE}/tables/${selectedTable}` + (editingId ? `/${editingId}` : "");
+    const url = `${API_BASE}/api/database/tables/${selectedTable}` + (editingId ? `/${editingId}` : "");
     const method = editingId ? "PUT" : "POST";
 
     await authFetch(url, {
@@ -121,7 +121,7 @@ const AdminCrud = () => {
     setFormData({});
     setEditingId(null);
 
-    authFetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_BASE}/api/database/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -142,14 +142,14 @@ const AdminCrud = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this row?")) return;
 
-    await authFetch(`${API_BASE}/tables/${selectedTable}/${id}`, {
+    await authFetch(`${API_BASE}/api/database/tables/${selectedTable}/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
 
-    authFetch(`${API_BASE}/tables/${selectedTable}`, {
+    authFetch(`${API_BASE}/api/database/tables/${selectedTable}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

@@ -4,7 +4,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import "../styles/MainContent/Settings.css";
 import { authFetch } from "../utils/authFetch";
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8000") + "/api/user";
 const tabs = ["Account", "Security"];
 
 const SettingsPage = () => {

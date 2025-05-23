@@ -351,7 +351,7 @@ const PlaylistPage = () => {
                       return (
                         <React.Fragment key={i}>
                           {artistId ? (
-                            <a href={`http://localhost:3000/artist/${artistId}`}>{name}</a>
+                            <a href={`https://music-streaming-app-frontend.vercel.app/artist/${artistId}`}>{name}</a>
                           ) : (
                             name
                           )}
@@ -362,7 +362,7 @@ const PlaylistPage = () => {
                   </span>
                 </div>
                 </td>
-                <td className="col-album"><a href={`http://localhost:3000/album/${track.album_id}`}>{track.album}</a></td>
+                <td className="col-album"><a href={`https://music-streaming-app-frontend.vercel.app/album/${track.album_id}`}>{track.album}</a></td>
                 <td className="col-date">{track.date_added}</td>
                 <td className="col-duration">{track.duration}</td>
                 <td className="track-options col-option">

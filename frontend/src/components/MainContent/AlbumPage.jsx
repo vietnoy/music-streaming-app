@@ -297,7 +297,7 @@ const AlbumPage = () => {
                   <img src={track.image_url} alt={track.track_name} className="track-image" />
                   <div className="track-info">
                     <p className="track-title">{track.track_name}</p>
-                    <span className="track-artist"><a href={`http://localhost:3000/artist/${album.artist_id}`}>{track.artist_name}</a></span>
+                    <span className="track-artist"><a href={`https://music-streaming-app-frontend.vercel.app/artist/${album.artist_id}`}>{track.artist_name}</a></span>
                   </div>
                 </td>
                 <td className="col-album">{track.album}</td>
