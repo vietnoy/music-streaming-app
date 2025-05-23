@@ -48,12 +48,3 @@ def startup_event():
     print("Loading models...")
     recommender.load()
     print("Done.")
-=======
-@app.get("/health")
-def health_check():
-    return {"status": "healthy", "message": "Backend is running"}
->>>>>>> Stashed changes
-=======
-    return {"message": "Testing OK"}
->>>>>>> 8f6b096427df9f0d02f76c72d8d6788045082319
->>>>>>> Stashed changes
