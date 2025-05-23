@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // ✅ Added useLocation
 import "../styles/SignIn/SignIn.css";
-
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const SignIn = () => {
-
   console.log(API_BASE);
   const [formData, setFormData] = useState({
     identifier: "",
@@ -15,14 +13,29 @@ const SignIn = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation(); // ✅ Get current location
 
-  // Redirect if already signed in
+  // Check for redirect parameter and handle existing token
   useEffect(() => {
+    // Check URL for redirect parameter
+    const params = new URLSearchParams(location.search);
+    const redirectPath = params.get('redirect');
+    
+    // If redirect parameter exists, store it
+    if (redirectPath) {
+      localStorage.setItem('redirectAfterLogin', redirectPath);
+      console.log("Will redirect to:", redirectPath, "after login");
+    }
+    
+    // If token exists, redirect appropriately
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/");
+      // Get saved redirect path or fall back to home
+      const savedRedirect = localStorage.getItem('redirectAfterLogin') || "/";
+      localStorage.removeItem('redirectAfterLogin'); // Clear after using
+      navigate(savedRedirect);
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleChange = (e) => {
     setFormData({
@@ -58,8 +71,12 @@ const SignIn = () => {
       console.log("Signed in user:", userData);
       alert(`Welcome, ${userData.user.username}!`);
 
+      // Handle redirect after successful login
       setTimeout(() => {
-        navigate("/");
+        // Get saved redirect path or fall back to home
+        const redirectPath = localStorage.getItem('redirectAfterLogin') || "/";
+        localStorage.removeItem('redirectAfterLogin'); // Clear after using
+        navigate(redirectPath);
       }, 200);
     } catch (err) {
       console.error(err);

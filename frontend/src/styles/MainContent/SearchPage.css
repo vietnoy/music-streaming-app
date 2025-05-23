@@ -318,10 +318,14 @@ tr:hover .hover-only {
 .artist-link {
   text-decoration: none;
   color: white;
+  border: none;
+  background: none;
+  padding: 0;
 }
 
 .artist-link:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 
 .playlist-submenu {

@@ -15,6 +15,7 @@ const SettingsPage = () => {
 
   const token = localStorage.getItem("token");
 
+  // Fixed: Added empty dependency array to prevent infinite re-renders
   useEffect(() => {
     authFetch(`${API_BASE}/me`, {
       headers: {
@@ -24,7 +25,7 @@ const SettingsPage = () => {
       .then(res => res.json())
       .then(data => setFormData(data))
       .catch(err => console.error("Failed to load user:", err));
-  });
+  }, [token]); // ← Added empty dependency array here
 
   const handleChange = (e, field) => {
     setFormData({ ...formData, [field]: e.target.value });

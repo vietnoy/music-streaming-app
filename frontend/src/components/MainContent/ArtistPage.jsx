@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // ✅ Add useNavigate
 import { FaPlay, FaHeart, FaRegHeart } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
@@ -11,6 +11,7 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const ArtistPage = () => {
   const { artistId } = useParams();
+  const navigate = useNavigate(); // ✅ Add navigate hook
   const [artist, setArtist] = useState(null);
   const [likedTrackIds, setLikedTrackIds] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
@@ -155,7 +156,7 @@ const ArtistPage = () => {
     authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`)
       .then((res) => res.json())
       .then((data) => {
-        const filtered = data.filter((pl) => pl.name !== "Liked Songs");
+        const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
         setUserPlaylists(filtered);
   
         // Check if artist is added to library
@@ -226,15 +227,13 @@ const ArtistPage = () => {
 
       <button
         className="play-button"
-        // onClick={() =>
-        //   isCurrentArtistPlaying ? stop() : playSongFrom(artist.tracks[0].id)
         onClick={async () => {
-        if (isCurrentArtistPlaying) {
-          stop();
-        } else {
-          await playSongFrom(artist.tracks[0].id);
-        }
-      }}
+          if (isCurrentArtistPlaying) {
+            stop();
+          } else {
+            await playSongFrom(artist.tracks[0].id);
+          }
+        }}
       >
         <span className="play-icon">
           {isCurrentArtistPlaying ? <i className="fas fa-pause" /> : <i className="fas fa-play" />}
@@ -282,7 +281,12 @@ const ArtistPage = () => {
                   </div>
                 </td>
                 <td className="col-album">
-                  <a href={`/album/${track.album_id}`}>{track.album}</a>
+                  <button 
+                    className="album-link"
+                    onClick={() => navigate(`/album/${track.album_id}`)}
+                  >
+                    {track.album}
+                  </button>
                 </td>
                 <td className="col-duration">{track.duration}</td>
                 <td className="col-like">

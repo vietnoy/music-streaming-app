@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "../../styles/MainContent/SearchPage.css";
 import { FaPlay, FaHeart, FaRegHeart } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
@@ -11,6 +11,7 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const AlbumPage = () => {
   const { albumId } = useParams();
+  const navigate = useNavigate(); 
   const [album, setAlbum] = useState(null);
   const [likedTrackIds, setLikedTrackIds] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
@@ -234,7 +235,12 @@ const AlbumPage = () => {
           <span className="playlist-label">Album</span>
           <h1>{album.name}</h1>
           <p>
-            <a className="artist-link" href={`/artist/${album.artist_id}`}>{album.artist}</a> • {album.tracks.length} songs
+            <button 
+              className="artist-link"
+              onClick={() => navigate(`/artist/${album.artist_id}`)}
+            >
+              {album.artist}
+            </button> • {album.tracks.length} songs
           </p>
           <button
             className={`add-button`}
@@ -297,7 +303,14 @@ const AlbumPage = () => {
                   <img src={track.image_url} alt={track.track_name} className="track-image" />
                   <div className="track-info">
                     <p className="track-title">{track.track_name}</p>
-                    <span className="track-artist"><a href={`https://music-streaming-app-frontend.vercel.app/artist/${album.artist_id}`}>{track.artist_name}</a></span>
+                    <span className="track-artist">
+                      <button 
+                        className="artist-link"
+                        onClick={() => navigate(`/artist/${album.artist_id}`)}
+                      >
+                        {track.artist_name}
+                      </button>
+                    </span>
                   </div>
                 </td>
                 <td className="col-album">{track.album}</td>

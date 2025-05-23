@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // ✅ Add useNavigate
 import "../../styles/MainContent/PlaylistPage.css";
 import { formatDistanceToNow } from "date-fns";
 import { FaPlay } from "react-icons/fa";
@@ -10,6 +10,7 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const PlaylistPage = () => {
   const { playlistId } = useParams();
+  const navigate = useNavigate(); // ✅ Add navigate hook
   const [playlist, setPlaylist] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const { currentSong, isPlaying, queue, playSong, setQueue, stop } = usePlayer();
@@ -21,6 +22,7 @@ const PlaylistPage = () => {
     description: playlist?.description || "",
     cover: null
   });
+
   const handleDeletePlaylist = async () => {
     const confirmed = window.confirm("Are you sure you want to delete this playlist?");
     if (!confirmed) return;
@@ -35,11 +37,12 @@ const PlaylistPage = () => {
           Authorization: `Bearer ${token}`
         }
       });
-      window.location.href = "/"; // or navigate('/')
+      navigate("/"); // ✅ Use navigate instead of window.location.href
     } catch (err) {
       console.error("Failed to delete playlist:", err);
     }
   };
+
   const handleUpdatePlaylist = async () => {
     const formData = new FormData();
     if (editFields.name) formData.append("name", editFields.name);
@@ -56,14 +59,16 @@ const PlaylistPage = () => {
         body: formData
       });
       setShowEditModal(false);
-      window.location.reload();
+      // ✅ Instead of window.location.reload(), refetch the data
+      fetchPlaylist();
     } catch (err) {
       console.error("Failed to update playlist:", err);
     }
   };
+
   const menuRefs = useRef({});
   const isCurrentPlaylistPlaying =
-  playlist?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
+    playlist?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
 
   const fetchMp3Url = async (trackName) => {
     const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(trackName)}`);
@@ -81,7 +86,7 @@ const PlaylistPage = () => {
     const mp3Url = await fetchMp3Url(track.track_name);
     const enrichedTrack = { ...track, mp3_url: mp3Url };
 
-    playSong(enrichedTrack, rest); // Keep the rest without mp3_url
+    playSong(enrichedTrack, rest);
   };
 
   const addToQueue = async (trackId) => {
@@ -95,7 +100,6 @@ const PlaylistPage = () => {
       if (!isPlaying) {
         playSong(enrichedTrack, []);
       } else {
-        // Else, add to end of queue
         setQueue([...queue, enrichedTrack]);
       }
     } catch (err) {
@@ -129,6 +133,45 @@ const PlaylistPage = () => {
     }
   };
 
+  // ✅ Extract fetchPlaylist function so it can be reused
+  const fetchPlaylist = async () => {
+    try {
+      const playlistRes = await fetch(`${API_BASE}/api/music/playlist/${playlistId}`);
+      const playlistData = await playlistRes.json();
+
+      console.log(playlistData);
+
+      const songRes = await fetch(`${API_BASE}/api/music/playlist/${playlistId}/songs`);
+      const songData = await songRes.json();
+
+      const formattedTracks = Array.isArray(songData)
+        ? songData.map((song) => ({
+            id: song.id,
+            track_name: song.title,
+            artist_id: song.artist_id,
+            artist_name: song.artist,
+            album_id: song.album_id,
+            album: song.album,
+            duration: song.duration,
+            image_url: song.cover_url,
+            date_added: formatDistanceToNow(new Date(song.date_added), { addSuffix: true })
+          }))
+        : [];
+      console.log(formattedTracks);
+
+      setPlaylist({
+        id: playlistData.id,
+        name: playlistData.name,
+        owner: playlistData.owner_name,
+        image: playlistData.cover_image_url,
+        description: playlistData.description || "Your favorite songs all in one place.",
+        tracks: formattedTracks,
+      });
+    } catch (err) {
+      console.error("Failed to fetch playlist or songs:", err);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -144,44 +187,6 @@ const PlaylistPage = () => {
   }, [openMenuId]);
 
   useEffect(() => {
-    const fetchPlaylist = async () => {
-      try {
-        const playlistRes = await fetch(`${API_BASE}/api/music/playlist/${playlistId}`);
-        const playlistData = await playlistRes.json();
-
-        console.log(playlistData)
-
-        const songRes = await fetch(`${API_BASE}/api/music/playlist/${playlistId}/songs`);
-        const songData = await songRes.json();
-
-        const formattedTracks = Array.isArray(songData)
-        ? songData.map((song) => ({
-            id: song.id,
-            track_name: song.title,
-            artist_id: song.artist_id,
-            artist_name: song.artist,
-            album_id: song.album_id,
-            album: song.album,
-            duration: song.duration,
-            image_url: song.cover_url,
-            date_added: formatDistanceToNow(new Date(song.date_added), { addSuffix: true })
-          }))
-        : [];
-        console.log(formattedTracks)
-
-        setPlaylist({
-          id: playlistData.id,
-          name: playlistData.name,
-          owner: playlistData.owner_name,
-          image: playlistData.cover_image_url,
-          description: playlistData.description || "Your favorite songs all in one place.",
-          tracks: formattedTracks,
-        });
-      } catch (err) {
-        console.error("Failed to fetch playlist or songs:", err);
-      }
-    };
-
     fetchPlaylist();
   }, [playlistId]);
 
@@ -242,13 +247,13 @@ const PlaylistPage = () => {
               {showEditDropdown && (
                 <div className={`dropdown-menu ${showEditDropdown ? "show" : ""}`}>
                   <button onClick={() => {
-                    setShowEditModal(true); // ✅ Open edit modal
+                    setShowEditModal(true);
                     setShowEditDropdown(false);
                   }}>
                     Edit Info
                   </button>
                   <button onClick={() => {
-                    handleDeletePlaylist(); // ✅ Call delete API
+                    handleDeletePlaylist();
                     setShowEditDropdown(false);
                   }}>
                     Delete Playlist
@@ -270,7 +275,7 @@ const PlaylistPage = () => {
             const mp3Url = await fetchMp3Url(firstTrack.track_name);
             const enrichedFirst = { ...firstTrack, mp3_url: mp3Url };
         
-            const rest = playlist.tracks.slice(1); // untouched
+            const rest = playlist.tracks.slice(1);
             playSong(enrichedFirst, rest);
 
             try {
@@ -311,10 +316,10 @@ const PlaylistPage = () => {
                   <div className="row-number-wrapper">
                     {currentSong?.id === track.id && isPlaying ? (
                       <div className="playing-bars">
-                      <span className="bar bar1"></span>
-                      <span className="bar bar2"></span>
-                      <span className="bar bar3"></span>
-                    </div>
+                        <span className="bar bar1"></span>
+                        <span className="bar bar2"></span>
+                        <span className="bar bar3"></span>
+                      </div>
                     ) : (
                       <>
                         <span className="track-number">{i + 1}</span>
@@ -340,29 +345,41 @@ const PlaylistPage = () => {
                   </div>
                 </td>
                 <td className="track-title-cell col-date">
-                <img src={track.image_url} alt={track.track_name} className="track-image" />
-                <div className="track-info">
-                  <p className="track-title">{track.track_name}</p>
-                  <span className="track-artist">
-                    {(track.artist_name?.split(", ") || []).map((name, i) => {
-                      const ids = track.artist_id?.split(", ");
-                      const artistId = ids?.[i];
+                  <img src={track.image_url} alt={track.track_name} className="track-image" />
+                  <div className="track-info">
+                    <p className="track-title">{track.track_name}</p>
+                    <span className="track-artist">
+                      {(track.artist_name?.split(", ") || []).map((name, i) => {
+                        const ids = track.artist_id?.split(", ");
+                        const artistId = ids?.[i];
 
-                      return (
-                        <React.Fragment key={i}>
-                          {artistId ? (
-                            <a href={`https://music-streaming-app-frontend.vercel.app/artist/${artistId}`}>{name}</a>
-                          ) : (
-                            name
-                          )}
-                          {i < track.artist_name.split(", ").length - 1 && ", "}
-                        </React.Fragment>
-                      );
-                    })}
-                  </span>
-                </div>
+                        return (
+                          <React.Fragment key={i}>
+                            {artistId ? (
+                              <button 
+                                className="artist-link"
+                                onClick={() => navigate(`/artist/${artistId}`)}
+                              >
+                                {name}
+                              </button>
+                            ) : (
+                              name
+                            )}
+                            {i < track.artist_name.split(", ").length - 1 && ", "}
+                          </React.Fragment>
+                        );
+                      })}
+                    </span>
+                  </div>
                 </td>
-                <td className="col-album"><a href={`https://music-streaming-app-frontend.vercel.app/album/${track.album_id}`}>{track.album}</a></td>
+                <td className="col-album">
+                  <button 
+                    className="album-link"
+                    onClick={() => navigate(`/album/${track.album_id}`)}
+                  >
+                    {track.album}
+                  </button>
+                </td>
                 <td className="col-date">{track.date_added}</td>
                 <td className="col-duration">{track.duration}</td>
                 <td className="track-options col-option">

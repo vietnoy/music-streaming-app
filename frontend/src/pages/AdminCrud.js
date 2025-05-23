@@ -28,7 +28,7 @@ const AdminCrud = () => {
     } catch {
       navigate("/signin");
     }
-  });
+  }, []);
 
   useEffect(() => {
     authFetch(`${API_BASE}/api/database/tables`, {

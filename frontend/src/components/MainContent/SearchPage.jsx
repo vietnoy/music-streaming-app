@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom"; // ✅ Add useNavigate
 import "../../styles/MainContent/SearchPage.css";
 import { FaPlay, FaHeart, FaRegHeart } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
@@ -10,6 +10,7 @@ import { authFetch } from '../../utils/authFetch';
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const SearchPage = () => {
+  const navigate = useNavigate(); // ✅ Add navigate hook
   const token = localStorage.getItem("token");
   const [userId, setUserId] = useState(null);
   const menuRefs = useRef({});
@@ -166,8 +167,8 @@ const SearchPage = () => {
       try {
         const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
-        // Exclude "Liked Songs"
-        const filtered = data.filter((pl) => pl.name !== "Liked Songs");
+        // Exclude "Liked Songs" and filter to only include playlists
+        const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
         setUserPlaylists(filtered);
       } catch (err) {
         console.error("Failed to fetch user playlists", err);
@@ -278,7 +279,12 @@ const SearchPage = () => {
                             return (
                               <React.Fragment key={idx}>
                                 {artistId ? (
-                                  <a href={`/artist/${artistId}`}>{name}</a>
+                                  <button 
+                                    className="artist-link"
+                                    onClick={() => navigate(`/artist/${artistId}`)}
+                                  >
+                                    {name}
+                                  </button>
                                 ) : (
                                   name
                                 )}
@@ -290,7 +296,12 @@ const SearchPage = () => {
                       </div>
                     </td>
                     <td className="col-album">
-                      <a href={`/album/${track.album_id}`}>{track.album}</a>
+                      <button 
+                        className="album-link"
+                        onClick={() => navigate(`/album/${track.album_id}`)}
+                      >
+                        {track.album}
+                      </button>
                     </td>
                     <td className="col-duration">{track.duration}</td>
                     <td className="col-like">
@@ -340,14 +351,37 @@ const SearchPage = () => {
           <div className="album-grid">
             {results.map((album) => (
               <div key={album.id} className="album-card">
-                <img src={album.cover_image_url} alt={album.name} className="album-cover" />
+                <img 
+                  src={album.cover_image_url} 
+                  alt={album.name} 
+                  className="album-cover" 
+                  onClick={() => navigate(`/album/${album.id}`)}
+                  style={{cursor: 'pointer'}}
+                />
                 <span className="album-title">
-                  <a href={`/album/${album.id}`}>{album.name}</a>
+                  <button 
+                    onClick={() => navigate(`/album/${album.id}`)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#1db954',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      padding: 0,
+                      font: 'inherit'
+                    }}
+                  >
+                    {album.name}
+                  </button>
                 </span>
                 <span className="album-artist">
                    {(album.artist_name?.split(", ") || []).map((name, i) => (
                     <React.Fragment key={i}>
-                      <a href={`/artist/${album.artist_id?.split(", ")[i] || "#"}`}>{name}</a>
+                      <button 
+                        onClick={() => navigate(`/artist/${album.artist_id?.split(", ")[i] || "#"}`)}
+                      >
+                        {name}
+                      </button>
                       {i < album.artist_name.split(", ").length - 1 && ", "}
                     </React.Fragment>
                   ))}
@@ -359,9 +393,19 @@ const SearchPage = () => {
           <div className="artist-grid">
             {results.map((artist) => (
               <div key={artist.id} className="artist-card">
-                <img src={artist.profile_image_url} alt={artist.name} className="artist-cover" />
+                <img 
+                  src={artist.profile_image_url} 
+                  alt={artist.name} 
+                  className="artist-cover" 
+                  onClick={() => navigate(`/artist/${artist.id}`)}
+                  style={{cursor: 'pointer'}}
+                />
                 <span className="artist-name">
-                  <a href={`/artist/${artist.id}`}>{artist.name}</a>
+                  <button 
+                    onClick={() => navigate(`/artist/${artist.id}`)}
+                  >
+                    {artist.name}
+                  </button>
                 </span>
               </div>
             ))}
