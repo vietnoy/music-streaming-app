@@ -18,7 +18,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",  # Development
+        "https://*.vercel.app",   # Vercel deployments
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,4 +36,15 @@ app.include_router(database_router, prefix="/api/database")
 
 @app.get("/")
 def root():
+<<<<<<< Updated upstream
     return {"message": "Testing OK"}
+=======
+<<<<<<< HEAD
+    return {"message": "Testing OK"}
+
+<<<<<<< Updated upstream
+@app.on_event("startup")
+def startup_event():
+    print("Loading models...")
+    recommender.load()
+    print("Done.")

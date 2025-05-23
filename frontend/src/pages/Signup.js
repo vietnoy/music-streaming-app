@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import "../styles/SignUp/SignUp.css";
 import { components } from 'react-select';
 
+
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const DropdownIndicator = (props) => {
   const { menuIsOpen } = props.selectProps;
   return (
@@ -66,7 +69,7 @@ const Signup = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/signup", {
+      const response = await fetch(`${API_BASE}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, username, birthdate, gender })

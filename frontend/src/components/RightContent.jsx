@@ -3,13 +3,15 @@ import "../styles/RightContent.css";
 // import { FaPlay } from "react-icons/fa";
 import { usePlayer } from "../context/PlayerContext";
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const RightContent = ({ currentSong }) => {
   const [relatedSongs, setRelatedSongs] = useState([]);
   const { playSong } = usePlayer();
 
   const fetchMp3Url = async (trackName) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(trackName)}`);
+      const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(trackName)}`);
       const data = await res.json();
       return data.url;
     } catch (err) {
@@ -38,7 +40,7 @@ const RightContent = ({ currentSong }) => {
 
     const fetchRelated = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/music/related/${currentSong.id}`);
+        const res = await fetch(`${API_BASE}/api/music/related/${currentSong.id}`);
         const data = await res.json();
         if (Array.isArray(data)) {
           setRelatedSongs(data);

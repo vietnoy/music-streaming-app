@@ -7,6 +7,8 @@ import { jwtDecode } from "jwt-decode";
 import SkeletonLoader from "../SkeletonLoader";
 import { authFetch } from '../../utils/authFetch';
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const AlbumPage = () => {
   const { albumId } = useParams();
   const [album, setAlbum] = useState(null);
@@ -33,7 +35,7 @@ const AlbumPage = () => {
 
     if (isAdded) {
       try {
-        await fetch(`http://localhost:8000/api/music/library/${album.id}/last_played`, {
+        await fetch(`${API_BASE}/api/music/library/${album.id}/last_played`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -48,7 +50,7 @@ const AlbumPage = () => {
   const toggleLike = async (trackId) => {
     try {
       const method = likedTrackIds.includes(trackId) ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
         method: method,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -62,7 +64,7 @@ const AlbumPage = () => {
   };
 
   const fetchMp3Url = async (title) => {
-    const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(title)}`);
+    const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(title)}`);
     const data = await res.json();
     return data.url;
   };
@@ -89,7 +91,7 @@ const AlbumPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
+      await authFetch(`${API_BASE}/api/music/user/${userId}/add_track_to_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,8 +110,8 @@ const AlbumPage = () => {
     const fetchAlbum = async () => {
       try {
         const [albumRes, songRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/music/album/${albumId}`),
-          fetch(`http://localhost:8000/api/music/album/${albumId}/songs`),
+          fetch(`${API_BASE}/api/music/album/${albumId}`),
+          fetch(`${API_BASE}/api/music/album/${albumId}/songs`),
         ]);
         const albumData = await albumRes.json();
         const songData = await songRes.json();
@@ -144,7 +146,7 @@ const AlbumPage = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -158,7 +160,7 @@ const AlbumPage = () => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
         if (album?.id) {
           setIsAdded(data.some(item => item.id === album.id));
@@ -194,7 +196,7 @@ const AlbumPage = () => {
       (album.artist_id?.split(", ").length || 0) > 1 ? "composite" : "single";
   
     try {
-      await authFetch(`http://localhost:8000/api/music/${userId}/add_to_library/${album.id}?type=${albumType}`, {
+      await authFetch(`${API_BASE}/api/music/${userId}/add_to_library/${album.id}?type=${albumType}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -209,7 +211,7 @@ const AlbumPage = () => {
 
   const removeAlbum = async () => {
     try {
-      await authFetch(`http://localhost:8000/api/music/${userId}/remove_from_library/${album.id}`, {
+      await authFetch(`${API_BASE}/api/music/${userId}/remove_from_library/${album.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`

@@ -4,6 +4,8 @@ import "../../styles/MainContent/RecommendSongs.css";
 import { usePlayer } from "../../context/PlayerContext";
 import { authFetch } from '../../utils/authFetch';
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const RecommendSongs = ({ title }) => {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +14,7 @@ const RecommendSongs = ({ title }) => {
 
   const fetchMp3Url = async (trackName) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(trackName)}`);
+      const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(trackName)}`);
       const data = await res.json();
       return data.url;
     } catch (err) {
@@ -48,7 +50,7 @@ const RecommendSongs = ({ title }) => {
       setError(null);
 
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/recommendations/${userId}`, {
+        const res = await authFetch(`${API_BASE}/api/music/recommendations/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

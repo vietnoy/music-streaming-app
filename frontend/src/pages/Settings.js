@@ -4,7 +4,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import "../styles/MainContent/Settings.css";
 import { authFetch } from "../utils/authFetch";
 
-const API_BASE = "http://localhost:8000/api/user";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 const tabs = ["Account", "Security"];
 
 const SettingsPage = () => {
@@ -24,7 +24,7 @@ const SettingsPage = () => {
       .then(res => res.json())
       .then(data => setFormData(data))
       .catch(err => console.error("Failed to load user:", err));
-  }, []);
+  });
 
   const handleChange = (e, field) => {
     setFormData({ ...formData, [field]: e.target.value });

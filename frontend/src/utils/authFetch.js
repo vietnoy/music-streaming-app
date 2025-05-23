@@ -1,3 +1,5 @@
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 export const authFetch = async (url, options = {}) => {
   const token = localStorage.getItem("token");
 
@@ -12,7 +14,7 @@ export const authFetch = async (url, options = {}) => {
   });
 
   if (res.status === 401) {
-    const refreshRes = await fetch("http://localhost:8000/api/auth/refresh-token", {
+    const refreshRes = await fetch(`${API_BASE}/api/auth/refresh-token`, {
       method: "POST",
       credentials: "include",
     });
