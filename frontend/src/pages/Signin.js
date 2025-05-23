@@ -6,6 +6,8 @@ import "../styles/SignIn/SignIn.css";
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const SignIn = () => {
+
+  console.log(API_BASE);
   const [formData, setFormData] = useState({
     identifier: "",
     password: ""
