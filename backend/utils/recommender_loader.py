@@ -21,8 +21,7 @@ class Recommender:
         self.track_features = self.load_track_features()
 
     def load_data(self):
-        path = os.path.join(os.path.dirname(__file__), "..", "..", "airflow", "data", "dataset.csv")
-        return pd.read_csv(os.path.abspath(path))
+        return pd.read_csv("./data/dataset.csv")
 
     def load_faiss_index(self):
         blob = self.bucket.blob("music_index.index")
