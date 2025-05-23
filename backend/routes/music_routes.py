@@ -232,7 +232,7 @@ async def update_playlist(
     db.refresh(playlist)
     return {"message": "Playlist updated", "cover_image_url": playlist.cover_image_url}
 
-@router.delete("/user/playlist/{playlist_id}")
+@router.delete("/user_playlist/{playlist_id}")
 def delete_playlist(playlist_id: str, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
     user_id = current_user.id
     # First delete all songs from the playlist
@@ -262,7 +262,7 @@ def delete_playlist(playlist_id: str, db: Session = Depends(get_db),current_user
 
 @router.post("/user/create_playlist")
 async def create_playlist(
-    user_id: str,
+    # user_id: str,
     name: str = Form(...),
     description: str = Form(""),
     cover_image: UploadFile = File(None),
