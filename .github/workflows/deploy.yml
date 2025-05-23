@@ -14,20 +14,27 @@ jobs:
       
       - name: Debug directory structure
         run: |
-          pwd
+          echo "Current directory: $(pwd)"
+          echo "Repository contents:"
           ls -la
-          find . -type d -maxdepth 2
       
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+      
+      - name: Create Vercel project configuration
+        run: |
+          echo '{
+            "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
+            "orgId": "${{ secrets.VERCEL_ORG_ID }}"
+          }' > .vercel/project.json
+        working-directory: frontend
+        
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          # Either use the correct path for your frontend directory:
-          working-directory: ./frontend
-          # Or remove this line entirely if your frontend is at the root level
-          vercel-args: '--prod'
+        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   
   deploy-backend:
     runs-on: ubuntu-latest
