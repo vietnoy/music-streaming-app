@@ -17,20 +17,12 @@ jobs:
           echo "Current directory: $(pwd)"
           echo "Repository contents:"
           ls -la
-          
-          if [ -d "frontend" ]; then
-            echo "Frontend directory exists"
-            ls -la frontend
-          else
-            echo "Frontend directory does not exist"
-          fi
       
       - name: Install Vercel CLI
         run: npm install -g vercel
       
       - name: Create Vercel config directory
         run: |
-          cd frontend
           mkdir -p .vercel
           echo '{
             "projectId": "${{ secrets.VERCEL_PROJECT_ID }}",
@@ -41,9 +33,7 @@ jobs:
           cat .vercel/project.json
       
       - name: Deploy to Vercel
-        run: |
-          cd frontend
-          vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
+        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }} --yes
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
