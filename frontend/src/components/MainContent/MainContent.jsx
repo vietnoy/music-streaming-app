@@ -5,6 +5,8 @@ import "../../styles/MainContent/MainContent.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const MainContent = () => {
   const [playlists, setPlaylists] = useState([]);
   const [savedAlbums, setSavedAlbums] = useState([]);
@@ -17,7 +19,7 @@ const MainContent = () => {
 
     const fetchPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
 
         // Separate data by type
@@ -27,12 +29,12 @@ const MainContent = () => {
             let title = item.name;
         
             if (item.type === "artist") {
-              const res = await fetch(`http://localhost:8000/api/music/artist/${item.id}`);
+              const res = await fetch(`${API_BASE}/api/music/artist/${item.id}`);
               const data = await res.json();
               image = data.profile_image_url;
               title = data.name;
             } else if (item.type === "single" || item.type === "composite") {
-              const res = await fetch(`http://localhost:8000/api/music/album/${item.id}`);
+              const res = await fetch(`${API_BASE}/api/music/album/${item.id}`);
               const data = await res.json();
               image = data.cover_image_url;
               title = data.name;

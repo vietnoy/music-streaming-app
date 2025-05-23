@@ -7,6 +7,8 @@ import "../../styles/MainContent/PlaylistPage.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const SearchPage = () => {
   const token = localStorage.getItem("token");
   const [userId, setUserId] = useState(null);
@@ -38,7 +40,7 @@ const SearchPage = () => {
   
     try {
       // Fetch mp3_url for the track
-      const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.title)}`);
+      const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(track.title)}`);
       const data = await res.json();
       const enrichedTrack = {
         id: track.id,
@@ -67,7 +69,7 @@ const SearchPage = () => {
   const addToPlaylist = async (trackId, playlistId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await authFetch(`http://localhost:8000/api/music/user/${userId}/add_track_to_playlist`, {
+      const response = await authFetch(`${API_BASE}/api/music/user/${userId}/add_track_to_playlist`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -108,7 +110,7 @@ const SearchPage = () => {
       setIsLoading(true); // Show shimmer
   
       try {
-        const res = await fetch(`http://localhost:8000/api/music/search?query=${encodeURIComponent(query)}&filter_by=${filterBy}`);
+        const res = await fetch(`${API_BASE}/api/music/search?query=${encodeURIComponent(query)}&filter_by=${filterBy}`);
         const data = await res.json();
   
         if (Array.isArray(data)) {
@@ -148,7 +150,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -162,7 +164,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
         const data = await res.json();
         // Exclude "Liked Songs"
         const filtered = data.filter((pl) => pl.name !== "Liked Songs");
@@ -183,7 +185,7 @@ const SearchPage = () => {
   
     try {
       const method = isLiked ? "DELETE" : "POST";
-      await authFetch(`http://localhost:8000/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
         method: method,
         headers: {
           "Authorization": `Bearer ${token}`
@@ -244,7 +246,7 @@ const SearchPage = () => {
                               className="play-icon-row"
                               onClick={async () => {
                                 try {
-                                  const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.title)}`);
+                                  const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(track.title)}`);
                                   const data = await res.json();
                                   const enriched = {
                                     id: track.id,

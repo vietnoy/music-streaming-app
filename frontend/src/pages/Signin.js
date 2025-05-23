@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/SignIn/SignIn.css";
 
+
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const SignIn = () => {
   const [formData, setFormData] = useState({
     identifier: "",
@@ -32,7 +35,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/signin", {
+      const response = await fetch(`${API_BASE}/api/auth/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

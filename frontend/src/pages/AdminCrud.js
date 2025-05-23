@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from "../utils/authFetch";
 
-const API_BASE = "http://localhost:8000/api/database";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const AdminCrud = () => {
   const [tables, setTables] = useState([]);

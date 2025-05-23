@@ -4,6 +4,8 @@ import { FaPlus, FaAngleRight, FaAngleLeft, FaSearch, FaChevronDown} from "react
 import { useNavigate } from "react-router-dom";
 import { authFetch } from "../utils/authFetch";
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const SidebarLeft = () => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
@@ -39,7 +41,7 @@ const SidebarLeft = () => {
         const user = JSON.parse(localStorage.getItem("user"));
         const userId = user?.id;
   
-        const res = await authFetch(`http://localhost:8000/api/music/user_playlist?user_id=${userId}`, {
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -70,13 +72,13 @@ const SidebarLeft = () => {
         
             try {
               if (item.type === "artist") {
-                const res = await fetch(`http://localhost:8000/api/music/artist/${item.id}`);
+                const res = await fetch(`${API_BASE}/api/music/artist/${item.id}`);
                 const artistData = await res.json();
                 name = artistData.name;
                 owner = artistData.name;
                 image = artistData.profile_image_url;
               } else if (item.type === "single" || item.type === "composite") {
-                const res = await fetch(`http://localhost:8000/api/music/album/${item.id}`);
+                const res = await fetch(`${API_BASE}/api/music/album/${item.id}`);
                 const albumData = await res.json();
                 name = albumData.name;
                 owner = albumData.artist_name;
@@ -160,7 +162,7 @@ const SidebarLeft = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;
-      const res = await authFetch(`http://localhost:8000/api/music/user/${userId}/create_playlist`, {
+      const res = await authFetch(`${API_BASE}/api/music/user/${userId}/create_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

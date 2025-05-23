@@ -4,6 +4,8 @@ const PlayerContext = createContext();
 
 export const usePlayer = () => useContext(PlayerContext);
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 export const PlayerProvider = ({ children }) => {
   const [currentSong, setCurrentSong] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -25,7 +27,7 @@ export const PlayerProvider = ({ children }) => {
       return;
     }
     const [next, ...rest] = queue;
-    const res = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(next.track_name)}`);
+    const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(next.track_name)}`);
     const data = await res.json();
     const enrichedNext = { ...next, mp3_url: data.url };
   
