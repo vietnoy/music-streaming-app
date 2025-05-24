@@ -958,10 +958,12 @@ def update_last_played(
     return {"message": f"Updated last_played for item {item_id}"}
 
 
+# Corrected Gemini configuration
 API_KEY = os.getenv("GEMINI_API_KEY")
-from google import genai
+import google.generativeai as genai
 
-client = genai.Client(api_key=API_KEY)
+genai.configure(api_key=API_KEY)
+
 @router.post("/ask")
 async def ask_gemini(prompt: str = Form(...)):
     user_prompt = prompt.strip()
@@ -995,22 +997,14 @@ User input:
 \"{user_prompt}\"
 """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-
     try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=final_prompt
-        )
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        response = model.generate_content(final_prompt)
 
-        result = response
-        # print("📦 Gemini response:", result)
-
-        if response.candidates:
+        # Extract the response text
+        if response.candidates and response.candidates[0].content.parts:
             reply = response.candidates[0].content.parts[0].text
             return {"reply": reply}
-        elif result.get("error"):
-            raise HTTPException(status_code=500, detail=result["error"].get("message", "Lỗi không xác định từ Gemini."))
         else:
             raise HTTPException(status_code=500, detail="Gemini không trả về dữ liệu hợp lệ.")
 
