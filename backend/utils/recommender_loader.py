@@ -49,6 +49,21 @@ class Recommender:
         query_job = self.bq_client.query(query, job_config=job_config)
         results = query_job.result()
         return [row.track_id for row in results]
+    
+    def get_related_tracks(self, track_id):
+        query = """
+            SELECT related_trackid
+            FROM `silicon-stock-452315-h4.music_recommend.related_song`
+            WHERE track_id = @track_id
+        """
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("track_id", "STRING", track_id)
+            ]
+        )
+        query_job = self.bq_client.query(query, job_config=job_config)
+        results = query_job.result()
+        return [row.related_trackid for row in results]
 
     def get_emo_recommendations(self, user_id, emo):
         emo = emo.lower()
