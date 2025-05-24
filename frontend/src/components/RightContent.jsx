@@ -63,7 +63,7 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
     };
 
     fetchRelated();
-  }, [currentSong, isQueueVisible]);
+  }, [currentSong]);
 
   useEffect(() => {
     const fetchUserPlaylists = async () => {

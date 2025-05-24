@@ -811,17 +811,19 @@ def remove_from_liked_playlist(
 
 @router.get("/related/{track_id}", response_model=List[TrackResponse])
 def get_related_songs(track_id: str, db: Session = Depends(get_db)):
-    idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
-    query_vector = recommender.track_features[idx].reshape(1, -1)
+    # idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
+    # query_vector = recommender.track_features[idx].reshape(1, -1)
 
-    distances, indices = recommender.faiss_index.search(query_vector, 10)
-    similar_ids = {
-        recommender.data_df.iloc[i]["track_id"]
-        for i in indices[0]
-        if recommender.data_df.iloc[i]["track_id"] != track_id
-    }
+    # distances, indices = recommender.faiss_index.search(query_vector, 10)
+    # similar_ids = {
+    #     recommender.data_df.iloc[i]["track_id"]
+    #     for i in indices[0]
+    #     if recommender.data_df.iloc[i]["track_id"] != track_id
+    # }
 
-    track_ids = random.sample(list(similar_ids), min(3, len(similar_ids)))
+    similar_ids = recommender.get_related_tracks(track_id)
+
+    track_ids = random.sample(similar_ids, min(3, len(similar_ids)))
 
     rows = []
     for tid in track_ids:
