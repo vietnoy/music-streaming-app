@@ -3,6 +3,7 @@ import "../styles/SidebarLeft.css";
 import { FaPlus, FaAngleRight, FaAngleLeft, FaSearch, FaChevronDown} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { authFetch } from "../utils/authFetch";
+import { formatDistanceToNow } from "date-fns";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -11,7 +12,7 @@ const SidebarLeft = () => {
   const [expanded, setExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showSearchBox, setShowSearchBox] = useState(false);
-  const [components, setComponents] = useState([]); // Store fetched playlists
+  const [components, setComponents] = useState([]);
   const [filter, setFilter] = useState(null);
   const [sortType, setSortType] = useState("created_at");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
@@ -19,8 +20,93 @@ const SidebarLeft = () => {
   const [newPlaylist, setNewPlaylist] = useState({ name: "", description: "", coverImage: null });
   const dropdownRef = useRef(null);
   const searchRef = useRef(null);
+  const sidebarRef = useRef(null);
 
-  // optional: close dropdown when clicking outside
+  const formatLastPlayed = (lastPlayed) => {
+    if (!lastPlayed) return "Never";
+    
+    try {
+      const date = new Date(lastPlayed);
+      if (isNaN(date.getTime())) return "Never";
+      
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (err) {
+      return "Never";
+    }
+  };
+
+  const fetchPlaylists = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await authFetch(`${API_BASE}/api/music/user_playlist`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch playlists");
+      const data = await res.json();
+
+      const processed = await Promise.all(
+        data.map(async (item) => {
+          // If it's a regular user-created playlist
+          if (item.type === "playlist") {
+            return {
+              id: item.id,
+              name: item.name,
+              type: item.type,
+              owner: item.owner_name,
+              image: item.cover_image_url,
+              created_at: item.created_at,
+              last_played: item.last_played, 
+            };
+          }
+      
+          // If it's artist/single/composite → fetch additional info
+          let name = item.name;
+          let owner = item.owner_name;
+          let image = item.cover_image_url;
+      
+          try {
+            if (item.type === "artist") {
+              const res = await fetch(`${API_BASE}/api/music/artist/${item.id}`);
+              const artistData = await res.json();
+              name = artistData.name;
+              owner = artistData.name;
+              image = artistData.profile_image_url;
+            } else if (item.type === "single" || item.type === "composite") {
+              const res = await fetch(`${API_BASE}/api/music/album/${item.id}`);
+              const albumData = await res.json();
+              name = albumData.name;
+              owner = albumData.artist_name;
+              image = albumData.cover_image_url;
+            }
+          } catch (err) {
+            console.error(`Failed to fetch ${item.type} info for ID ${item.id}`, err);
+          }
+      
+          return {
+            id: item.id,
+            name,
+            type: item.type,
+            owner,
+            image: image || "/default_cover.jpg",
+            created_at: item.created_at,
+            last_played: item.last_played,
+          };
+        })
+      );
+
+      setComponents(processed);
+    } catch (err) {
+      console.error("Error loading playlists:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchPlaylists();
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -32,79 +118,6 @@ const SidebarLeft = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  const sidebarRef = useRef(null);
-  const fetchPlaylists = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const user = JSON.parse(localStorage.getItem("user"));
-        const userId = user?.id;
-  
-        const res = await authFetch(`${API_BASE}/api/music/user_playlist`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        if (!res.ok) throw new Error("Failed to fetch playlists");
-  
-        const data = await res.json();
-  
-        const processed = await Promise.all(
-          data.map(async (item) => {
-            // If it's a regular user-created playlist
-            if (item.type === "playlist") {
-              return {
-                id: item.id,
-                name: item.name,
-                type: item.type,
-                owner: item.owner_name,
-                image: item.cover_image_url,
-                created_at: item.created_at,
-              };
-            }
-        
-            // If it's artist/single/composite → fetch additional info
-            let name = item.name;
-            let owner = item.owner_name;
-            let image = item.cover_image_url
-        
-            try {
-              if (item.type === "artist") {
-                const res = await fetch(`${API_BASE}/api/music/artist/${item.id}`);
-                const artistData = await res.json();
-                name = artistData.name;
-                owner = artistData.name;
-                image = artistData.profile_image_url;
-              } else if (item.type === "single" || item.type === "composite") {
-                const res = await fetch(`${API_BASE}/api/music/album/${item.id}`);
-                const albumData = await res.json();
-                name = albumData.name;
-                owner = albumData.artist_name;
-                image = albumData.cover_image_url;
-              }
-            } catch (err) {
-              console.error(`Failed to fetch ${item.type} info for ID ${item.id}`, err);
-            }
-        
-            return {
-              id: item.id,
-              name,
-              type: item.type,
-              owner,
-              image: image || "/default_cover.jpg",
-              created_at: item.created_at,
-            };
-          })
-        );
-  
-        setComponents(processed);
-      } catch (err) {
-        console.error("Error loading playlists:", err);
-      }
-    };
-  useEffect(() => {
-    fetchPlaylists();
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -112,7 +125,7 @@ const SidebarLeft = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowSortDropdown(false);
       }
-  
+
       // Close search only if it's empty
       if (
         searchRef.current &&
@@ -122,7 +135,7 @@ const SidebarLeft = () => {
         setShowSearchBox(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -141,12 +154,15 @@ const SidebarLeft = () => {
   .sort((a, b) => {
     if (sortType === "created_at") {
       return new Date(b.created_at) - new Date(a.created_at);
+    } else if (sortType === "played") {
+      if (!a.last_played && !b.last_played) return 0;
+      if (!a.last_played) return 1;
+      if (!b.last_played) return -1;
+      return new Date(b.last_played) - new Date(a.last_played);
     } else {
       return a.name.localeCompare(b.name);
     }
   });
-
-  console.log(filteredComponents)
 
   const handleCreatePlaylist = async () => {
     const formData = new FormData();
@@ -159,8 +175,6 @@ const SidebarLeft = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
-      const userId = user?.id;
       const res = await authFetch(`${API_BASE}/api/music/user/create_playlist`, {
         method: "POST",
         headers: {
@@ -168,23 +182,18 @@ const SidebarLeft = () => {
         },
         body: formData,
       });
-  
+
       if (!res.ok) throw new Error("Failed to create playlist");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
-      }
 
       alert("Playlist created!");
       setShowCreateForm(false);
       setNewPlaylist({ name: "", description: "", coverImage: null });
       fetchPlaylists();
-      // window.location.reload();
     } catch (err) {
       console.error("Create playlist error:", err);
       alert("Failed to create playlist");
     }
-};
-
+  };
 
   return (
     <aside
@@ -207,6 +216,7 @@ const SidebarLeft = () => {
           </button>
         </div>
       </div>
+
       {showCreateForm && (
         <div className="create-playlist-modal">
           <div className="modal-content">
@@ -238,25 +248,24 @@ const SidebarLeft = () => {
 
       {!expanded ? (
         <div className="filters">
-            <button
-              className={`filter-btn ${filter === "playlist" ? "active" : ""}`}
-              onClick={() => setFilter(filter === "playlist" ? null : "playlist")}
-            >
-              Playlists
-            </button>
-            <button
-              className={`filter-btn ${filter === "artist" ? "active" : ""}`}
-              onClick={() => setFilter(filter === "artist" ? null : "artist")}
-            >
-              Artists
-            </button>
-
-            <button
-              className={`filter-btn ${filter === "album" ? "active" : ""}`}
-              onClick={() => setFilter(filter === "album" ? null : "album")}
-            >
-              Albums
-            </button>
+          <button
+            className={`filter-btn ${filter === "playlist" ? "active" : ""}`}
+            onClick={() => setFilter(filter === "playlist" ? null : "playlist")}
+          >
+            Playlists
+          </button>
+          <button
+            className={`filter-btn ${filter === "artist" ? "active" : ""}`}
+            onClick={() => setFilter(filter === "artist" ? null : "artist")}
+          >
+            Artists
+          </button>
+          <button
+            className={`filter-btn ${filter === "album" ? "active" : ""}`}
+            onClick={() => setFilter(filter === "album" ? null : "album")}
+          >
+            Albums
+          </button>
         </div>
       ) : (
         <div className="filters">
@@ -272,7 +281,6 @@ const SidebarLeft = () => {
           >
             Artists
           </button>
-
           <button
             className={`filter-btn ${filter === "album" ? "active" : ""}`}
             onClick={() => setFilter(filter === "album" ? null : "album")}
@@ -307,7 +315,8 @@ const SidebarLeft = () => {
           <div className="library-table-body">
             {filteredComponents.map((item, index) => (
               <div 
-                className="library-row" key={index}
+                className="library-row" 
+                key={index}
                 onClick={() =>
                   navigate(
                     `/${item.type === "playlist" ? "playlist" : item.type === "artist" ? "artist" : "album"}/${item.id}`
@@ -317,12 +326,13 @@ const SidebarLeft = () => {
               >
                 <div className="library-title">
                   {item.image ? 
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                  />
-                  :
-                  (<p className="picture-alt">{item.name[0]}</p>)}
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                    />
+                    :
+                    (<p className="picture-alt">{item.name[0]}</p>)
+                  }
                   <div>
                     <div className="playlist-name">{item.name}</div>
                     <div className="playlist-type">
@@ -337,7 +347,9 @@ const SidebarLeft = () => {
                     day: "numeric"
                   })}
                 </span>
-                <span className="library-played">{index + 1} hours ago</span>
+                <span className="library-played">
+                  {formatLastPlayed(item.last_played)}
+                </span>
               </div>
             ))}
           </div>
@@ -388,7 +400,7 @@ const SidebarLeft = () => {
                       setShowSortDropdown(false);
                     }}
                   >
-                    Played
+                    Recently Played
                   </div>
                 </div>
               )}
@@ -396,14 +408,17 @@ const SidebarLeft = () => {
           </div>
           <div className="playlist-list">
             {filteredComponents.map((item, index) => (
-              <div className="playlist-row" key={index} 
-              onClick={() =>
-                navigate(
-                  `/${item.type === "playlist" ? "playlist" : item.type === "artist" ? "artist" : "album"}/${item.id}`
-                )
-              } 
-              style={{ cursor: "pointer" }}> 
-                <div className="playlist-item1" >
+              <div 
+                className="playlist-row" 
+                key={index} 
+                onClick={() =>
+                  navigate(
+                    `/${item.type === "playlist" ? "playlist" : item.type === "artist" ? "artist" : "album"}/${item.id}`
+                  )
+                } 
+                style={{ cursor: "pointer" }}
+              > 
+                <div className="playlist-item1">
                   {item.image ? (
                     <img
                       src={item.image}

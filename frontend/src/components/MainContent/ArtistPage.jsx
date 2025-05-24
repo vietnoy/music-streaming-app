@@ -1,32 +1,57 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // ✅ Add useNavigate
+import { useParams, useNavigate } from "react-router-dom";
 import { FaPlay, FaHeart, FaRegHeart } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
 import "../../styles/MainContent/PlaylistPage.css";
 import SkeletonLoader from "../SkeletonLoader";
 import { authFetch } from '../../utils/authFetch';
+import { updateLastPlayed } from '../../utils/lastPlayed';
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const ArtistPage = () => {
   const { artistId } = useParams();
-  const navigate = useNavigate(); // ✅ Add navigate hook
+  const navigate = useNavigate();
   const [artist, setArtist] = useState(null);
   const [likedTrackIds, setLikedTrackIds] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [hoveredTrackId, setHoveredTrackId] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [isAdded, setIsAdded] = useState(false);
   const menuRefs = useRef({});
   const token = localStorage.getItem("token");
   const userId = token ? jwtDecode(token)?.sub : null;
-  const [isAdded, setIsAdded] = useState(false);
+
   const { currentSong, isPlaying, playSong, stop, queue, setQueue } = usePlayer();
 
   const fetchMp3Url = async (title) => {
-    const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(title)}`);
-    const data = await res.json();
-    return data.url;
+    try {
+      const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(title)}`);
+      const data = await res.json();
+      return data.url;
+    } catch (err) {
+      console.error("Failed to fetch MP3 URL:", err);
+      return null;
+    }
+  };
+
+  const playSongFrom = async (trackId) => {
+    const index = artist.tracks.findIndex((t) => t.id === trackId);
+    if (index === -1) return;
+
+    const first = artist.tracks[index];
+    const rest = artist.tracks.slice(index + 1);
+    const mp3Url = await fetchMp3Url(first.track_name);
+    
+    if (!mp3Url) return;
+    
+    playSong({ ...first, mp3_url: mp3Url }, rest);
+
+    // Update last played if artist is in user's library
+    if (isAdded && token) {
+      await updateLastPlayed(artist.id, token);
+    }
   };
 
   const addToQueue = async (trackId) => {
@@ -35,10 +60,15 @@ const ArtistPage = () => {
 
     try {
       const mp3Url = await fetchMp3Url(track.track_name);
+      if (!mp3Url) return;
+      
       const enriched = { ...track, mp3_url: mp3Url };
 
       if (!isPlaying) {
         playSong(enriched, []);
+        if (isAdded && token) {
+          await updateLastPlayed(artist.id, token);
+        }
       } else {
         setQueue([...queue, enriched]);
       }
@@ -85,30 +115,33 @@ const ArtistPage = () => {
     }
   };
 
-  const playSongFrom = async (trackId) => {
-    const index = artist.tracks.findIndex((t) => t.id === trackId);
-    if (index === -1) return;
-
-    const first = artist.tracks[index];
-    const rest = artist.tracks.slice(index + 1);
-
-    const mp3Url = await fetchMp3Url(first.track_name);
-    playSong({ ...first, mp3_url: mp3Url }, rest);
-
-    if (isAdded) {
-      try {
-        await fetch(`${API_BASE}/api/music/library/${artist.id}/last_played`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      } catch (err) {
-        console.error("❌ Failed to update artist last_played:", err);
-      }
+  const addArtist = async () => {
+    try {
+      await authFetch(`${API_BASE}/api/music/add_to_library/${artist.id}?type=artist`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsAdded(true);
+      console.log("Artist added to library");
+    } catch (err) {
+      console.error(`Error while adding to user library: ${err}`);
+    }
+  };
+    
+  const removeArtist = async () => {
+    try {
+      await authFetch(`${API_BASE}/api/music/remove_from_library/${artist.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsAdded(false);
+      console.log("Artist removed from library");
+    } catch (err) {
+      console.error(`Error while removing artist from library: ${err}`);
     }
   };
 
+  // Fetch artist data
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -143,6 +176,7 @@ const ArtistPage = () => {
     fetchAll();
   }, [artistId]);
 
+  // Fetch liked tracks
   useEffect(() => {
     if (!userId) return;
     authFetch(`${API_BASE}/api/music/user/liked_track_ids`)
@@ -151,6 +185,7 @@ const ArtistPage = () => {
       .catch(console.error);
   }, [userId]);
 
+  // Fetch user playlists and check if artist is added
   useEffect(() => {
     if (!userId || !artist) return;
     authFetch(`${API_BASE}/api/music/user_playlist`)
@@ -158,7 +193,7 @@ const ArtistPage = () => {
       .then((data) => {
         const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
         setUserPlaylists(filtered);
-  
+        
         // Check if artist is added to library
         const isInLibrary = data.some(item => item.id === artist.id);
         setIsAdded(isInLibrary);
@@ -166,6 +201,7 @@ const ArtistPage = () => {
       .catch(console.error);
   }, [userId, artist]);
 
+  // Handle clicking outside menu
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(e.target)) {
@@ -178,38 +214,7 @@ const ArtistPage = () => {
 
   if (!artist) return <SkeletonLoader/>;
 
-  const isCurrentArtistPlaying =
-    artist.tracks.some((t) => t.id === currentSong?.id) && isPlaying;
-
-  const addArtist = async () => {
-    try {
-      await authFetch(`${API_BASE}/api/music/add_to_library/${artist.id}?type=artist`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setIsAdded(true);
-      console.log("Artist added to library");
-    } catch (err) {
-      console.error(`Error while adding to user library: ${err}`);
-    }
-  };
-    
-  const removeArtist = async () => {
-    try {
-      await authFetch(`${API_BASE}/api/music/remove_from_library/${artist.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setIsAdded(false);
-      console.log("Artist removed from library");
-    } catch (err) {
-      console.error(`Error while removing artist from library: ${err}`);
-    }
-  };
+  const isCurrentArtistPlaying = artist.tracks.some((t) => t.id === currentSong?.id) && isPlaying;
 
   return (
     <div className="playlist-page">
@@ -300,33 +305,30 @@ const ArtistPage = () => {
                       &#x22EE;
                     </button>
                     {openMenuId === track.id && (
-                          <div className="options-menu show">
-                            <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
-
-                            <div 
-                              className="playlist-submenu"
-                              onMouseEnter={() => setHoveredTrackId(track.id)}
-                              onMouseLeave={() => setHoveredTrackId(null)}
-                            >
-                              <button>Add to Playlist</button>
-                              {hoveredTrackId === track.id && userPlaylists.length > 0 && (
-                                <div className="playlist-options">
-                                  {userPlaylists
-                                  .filter((pl) => pl.type === "playlist")
-                                  .map((pl) => (
-                                    <div
-                                      key={pl.id}
-                                      className="playlist-item"
-                                      onClick={() => addToPlaylist(track.id, pl.id)}
-                                    >
-                                      {pl.name}
-                                    </div>
-                                  ))}
+                      <div className="options-menu show">
+                        <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
+                        <div 
+                          className="playlist-submenu"
+                          onMouseEnter={() => setHoveredTrackId(track.id)}
+                          onMouseLeave={() => setHoveredTrackId(null)}
+                        >
+                          <button>Add to Playlist</button>
+                          {hoveredTrackId === track.id && userPlaylists.length > 0 && (
+                            <div className="playlist-options">
+                              {userPlaylists.filter((pl) => pl.type === "playlist").map((pl) => (
+                                <div
+                                  key={pl.id}
+                                  className="playlist-item"
+                                  onClick={() => addToPlaylist(track.id, pl.id)}
+                                >
+                                  {pl.name}
                                 </div>
-                              )}
+                              ))}
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>
