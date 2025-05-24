@@ -233,3 +233,114 @@
 .search-filter-button.open .arrow-icon {
   transform: rotate(180deg);
 }
+
+.emotion-results-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.emotion-results-content {
+  background: #282828;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  position: relative;
+}
+
+.emotion-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #404040;
+}
+
+.emotion-results-header h3 {
+  color: #fff;
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.loading {
+  color: #b3b3b3;
+  text-align: center;
+  padding: 20px;
+}
+
+.no-results {
+  color: #b3b3b3;
+  text-align: center;
+  padding: 20px;
+}
+
+.emotion-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emotion-track-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.emotion-track-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.emotion-track-item img {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.emotion-track-item .track-info {
+  flex: 1;
+}
+
+.emotion-track-item .track-title {
+  color: #fff;
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+.emotion-track-item .track-artist {
+  color: #b3b3b3;
+  margin: 0;
+  font-size: 12px;
+}

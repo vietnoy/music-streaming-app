@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp,
-  FaExpand, FaPlus, FaHeart, FaRegHeart
+  FaExpand, FaPlus, FaHeart, FaRegHeart, FaList
 } from "react-icons/fa";
 import "../styles/MusicPlayer.css";
 
@@ -22,7 +22,9 @@ const MusicPlayer = ({
   onToggleLike,
   likedTrackIds = [],
   userPlaylists = [],
-  onAddTrackToPlaylist
+  onAddTrackToPlaylist,
+  onToggleQueue,
+  isQueueVisible
 }) => {
   const audioRef = useRef(null);
   const playlistRef = useRef(null);
@@ -97,7 +99,9 @@ const MusicPlayer = ({
           </button>
           {showPlaylistOptions && (
             <div className="playlist-options-dropdown">
-              {userPlaylists.map((pl) => (
+              {userPlaylists
+              .filter((pl) => pl.type === "playlist")
+              .map((pl) => (
                 <div
                   key={pl.id}
                   className="playlist-option-item"
@@ -151,6 +155,13 @@ const MusicPlayer = ({
             }}
           />
         </div>
+        <button 
+          className={`icon-button ${isQueueVisible ? 'active' : ''}`} 
+          onClick={onToggleQueue}
+          title="Queue"
+        >
+          <FaList />
+        </button>
         <button className="icon-button" onClick={onToggleFullscreen}>
           <FaExpand />
         </button>

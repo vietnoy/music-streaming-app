@@ -25,6 +25,7 @@ from utils.recommender_loader import recommender
 import random
 from models.user import User
 from .auth_routes import get_current_user
+import requests
 
 load_dotenv()
 
@@ -47,7 +48,8 @@ def get_db():
 
 ### Playlist API
 @router.get("/user_playlist", response_model=List[PlaylistResponse])
-def get_user_playlists(user_id: str, db: Session = Depends(get_db)):
+def get_user_playlists(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.id
     query = text("""
         SELECT playlist_user.playlist_id AS id, playlists.name, users.username AS owner_name, playlist_user.type, playlists.cover_image_url, playlists.description, playlist_user.created_at, playlist_user.last_played as last_played
         FROM playlists
@@ -230,8 +232,9 @@ async def update_playlist(
     db.refresh(playlist)
     return {"message": "Playlist updated", "cover_image_url": playlist.cover_image_url}
 
-@router.delete("/user/{user_id}/playlist/{playlist_id}")
-def delete_playlist(user_id: str, playlist_id: str, db: Session = Depends(get_db)):
+@router.delete("/user_playlist/{playlist_id}")
+def delete_playlist(playlist_id: str, db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+    user_id = current_user.id
     # First delete all songs from the playlist
     db.execute(text("""
         DELETE FROM playlist_tracks
@@ -257,14 +260,16 @@ def delete_playlist(user_id: str, playlist_id: str, db: Session = Depends(get_db
 
     return {"message": "Playlist deleted successfully"}
 
-@router.post("/user/{user_id}/create_playlist")
+@router.post("/user/create_playlist")
 async def create_playlist(
-    user_id: str,
+    # user_id: str,
     name: str = Form(...),
     description: str = Form(""),
     cover_image: UploadFile = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     playlist_id = str(uuid4())
     cover_url = None
 
@@ -286,7 +291,8 @@ async def create_playlist(
         name=name,
         description=description,
         cover_image_url=cover_url,
-        is_public=True,
+        # is_public=True,
+        # last_played=None,
         owner_id=user_id
     )
     db.add(playlist)
@@ -378,13 +384,14 @@ def get_album_songs(album_id: str, db: Session = Depends(get_db)):
         for row in rows
     ]
 
-@router.post("/user/{user_id}/add_track_to_playlist")
+@router.post("/user/add_track_to_playlist")
 def add_track_to_playlist(
-    user_id: str,
     track_id: str = Body(...),
     playlist_id: str = Body(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     # Step 1: Check if track already exists
     existing = db.execute(text("""
         SELECT 1 FROM playlist_tracks
@@ -409,13 +416,14 @@ def add_track_to_playlist(
     db.commit()
     return {"message": "Track successfully added to playlist"}
 
-@router.post("/{user_id}/add_to_library/{item_id}")
+@router.post("/add_to_library/{item_id}")
 def add_to_library(
-    user_id: str,
     item_id: str,
     type: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     new_entry = PlaylistUser(
         playlist_id=item_id,
         user_id=user_id,
@@ -425,12 +433,13 @@ def add_to_library(
     db.add(new_entry)
     db.commit()
 
-@router.delete("/{user_id}/remove_from_library/{item_id}")
+@router.delete("/remove_from_library/{item_id}")
 def remove_from_library(
-    user_id:str,
     item_id:str,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     delete_query = text("""
         DELETE FROM playlist_user
         WHERE playlist_id = :item_id AND user_id = :user_id
@@ -631,8 +640,9 @@ def get_mp3_url(track_name: str):
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
-@router.get("/user/{user_id}/liked_track_ids", response_model=List[str])
-def get_liked_track_ids(user_id: str, db: Session = Depends(get_db)):
+@router.get("/user/liked_track_ids", response_model=List[str])
+def get_liked_track_ids(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.id
     query = text("""
         SELECT pt.track_id
         FROM playlist_tracks pt
@@ -643,12 +653,13 @@ def get_liked_track_ids(user_id: str, db: Session = Depends(get_db)):
     result = db.execute(query, {"user_id": user_id}).fetchall()
     return [row[0] for row in result]
 
-@router.post("/user/{user_id}/liked_track")
+@router.post("/user/liked_track")
 def add_to_liked_playlist(
-    user_id: str,
     track_id: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     local_time = datetime.now(ZoneInfo("Asia/Bangkok"))
     naive_time = local_time.replace(tzinfo=None)
     # Get Liked Songs playlist ID (p.name = 'Liked Songs' is error)
@@ -688,12 +699,13 @@ def add_to_liked_playlist(
 
     return {"message": "Track added to Liked Songs"}
 
-@router.delete("/user/{user_id}/liked_track")
+@router.delete("/user/liked_track")
 def remove_from_liked_playlist(
-    user_id: str,
     track_id: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    user_id = current_user.id
     try:
         # Find Liked Songs playlist ID
         playlist_query = text("""
@@ -737,10 +749,14 @@ def get_related_songs(track_id: str, db: Session = Depends(get_db)):
     idx = recommender.data_df[recommender.data_df["track_id"] == track_id].index[0]
     query_vector = recommender.track_features[idx].reshape(1, -1)
 
-    distances, indices = recommender.faiss_index.search(query_vector, 6)
-    similar = recommender.data_df.iloc[indices[0][1:]]
-    track_ids = similar['track_id'].tolist()
-    track_ids = random.sample(track_ids, min(3, len(track_ids)))
+    distances, indices = recommender.faiss_index.search(query_vector, 10)
+    similar_ids = {
+        recommender.data_df.iloc[i]["track_id"]
+        for i in indices[0]
+        if recommender.data_df.iloc[i]["track_id"] != track_id
+    }
+
+    track_ids = random.sample(list(similar_ids), min(3, len(similar_ids)))
 
     rows = []
     for tid in track_ids:
@@ -797,8 +813,9 @@ def get_related_songs(track_id: str, db: Session = Depends(get_db)):
     ]
 
 
-@router.get("/recommendations/{user_id}", response_model=List[TrackResponse])
-def get_recommendations(user_id: str, db: Session = Depends(get_db)):
+@router.get("/recommendations", response_model=List[TrackResponse])
+def get_recommendations(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user_id = current_user.id
     recommended_track_ids = recommender.get_recommendations(user_id)
     if not recommended_track_ids:
         return []
@@ -857,6 +874,69 @@ def get_recommendations(user_id: str, db: Session = Depends(get_db)):
         for track in track_map.values()
     ]
 
+@router.get("/recommendations/emotion/{emo}", response_model=List[TrackResponse])
+def get_emo_recommendations(
+    emo: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    recommended_track_ids = recommender.get_emo_recommendations(current_user.id, emo)
+    if not recommended_track_ids:
+        return []
+
+    rows = []
+    for tid in recommended_track_ids:
+        query = text("""
+            SELECT s.track_id, s.track_name, at.id AS artist_id, at.name AS artist_name,
+                   ab.id AS album_id, ab.name AS album_name,
+                   s.duration_ms, s.track_image_url
+            FROM songs s
+            JOIN artists at ON at.id = s.artist_id
+            JOIN albums ab ON ab.id = s.album_id
+            WHERE s.track_id = :track_id
+        """)
+        row = db.execute(query, {"track_id": tid}).fetchone()
+        if row:
+            rows.append(row)
+
+    track_map = defaultdict(lambda: {
+        "id": None,
+        "title": None,
+        "artist_id": set(),
+        "artists": set(),
+        "album_id": None,
+        "album": None,
+        "duration": None,
+        "cover_url": None,
+        "date_added": None,
+    })
+
+    for row in rows:
+        track_id = row[0]
+        track = track_map[track_id]
+        track["id"] = track_id
+        track["title"] = row[1]
+        track["artist_id"].add(row[2])
+        track["artists"].add(row[3])
+        track["album_id"] = row[4]
+        track["album"] = row[5]
+        track["duration"] = format_duration(row[6])
+        track["cover_url"] = row[7]
+
+    return [
+        TrackResponse(
+            id=track["id"],
+            title=track["title"],
+            artist_id=", ".join(sorted(track["artist_id"])),
+            artist=", ".join(sorted(track["artists"])),
+            album_id=track["album_id"],
+            album=track["album"],
+            duration=track["duration"],
+            cover_url=track["cover_url"],
+            date_added=None 
+        )
+        for track in track_map.values()
+    ]
 
 ### Library API
 @router.put("/library/{item_id}/last_played")
@@ -876,3 +956,64 @@ def update_last_played(
     entry.last_played = datetime.now(timezone.utc)
     db.commit()
     return {"message": f"Updated last_played for item {item_id}"}
+
+
+API_KEY = os.getenv("GEMINI_API_KEY")
+from google import genai
+
+client = genai.Client(api_key=API_KEY)
+@router.post("/ask")
+async def ask_gemini(prompt: str = Form(...)):
+    user_prompt = prompt.strip()
+
+    if not user_prompt:
+        raise HTTPException(status_code=400, detail="Prompt không được để trống!")
+
+    final_prompt = f"""
+You are an empathetic and emotionally intelligent assistant.
+
+Context:
+The user is expressing an emotional state and is looking for music suggestions. Your job is to:
+1. Respond with a warm, emotionally intelligent English message that acknowledges their feelings.
+2. End the message with a gentle suggestion that is personalized to the emotion (e.g., "Maybe these songs will lift your mood" if they're sad).
+3. Select ONE appropriate music mood from the following list.
+
+Respond in this exact JSON format:
+
+{{
+  "intro": "<empathetic message with a personalized ending suggestion>",
+  "mood": "<ONE of: 'Lonely', 'Chill', 'Angry', 'Happy', 'Sad'>"
+}}
+
+Rules:
+- Do NOT mention any song titles or artists.
+- The intro must feel natural and caring.
+- The ending sentence should match the emotion and gently suggest listening to music.
+- The mood field must exactly match one of the five listed.
+
+User input:
+\"{user_prompt}\"
+"""
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=final_prompt
+        )
+
+        result = response
+        # print("📦 Gemini response:", result)
+
+        if response.candidates:
+            reply = response.candidates[0].content.parts[0].text
+            return {"reply": reply}
+        elif result.get("error"):
+            raise HTTPException(status_code=500, detail=result["error"].get("message", "Lỗi không xác định từ Gemini."))
+        else:
+            raise HTTPException(status_code=500, detail="Gemini không trả về dữ liệu hợp lệ.")
+
+    except Exception as e:
+        print("🔥 Lỗi khi gọi Gemini:", str(e))
+        raise HTTPException(status_code=500, detail="Lỗi máy chủ khi gọi Gemini.")

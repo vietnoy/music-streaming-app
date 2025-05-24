@@ -390,3 +390,104 @@ tr:hover .hover-only {
 .add-button:hover {
   color: white;
 }
+
+.emotion-results {
+  padding: 2rem;
+  /* max-width: 800px; */
+  margin: 0 auto;
+}
+
+.emotion-response {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.emotion-intro {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #fff;
+  margin-bottom: 1.5rem;
+}
+
+.emotion-mood {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mood-label {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.mood-value {
+  color: #1DB954;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.4rem 1rem;
+  background: rgba(29, 185, 84, 0.1);
+  border-radius: 20px;
+}
+
+.no-results {
+  text-align: center;
+  color: #b3b3b3;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.track-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 10px;
+}
+
+.track-card {
+  background: #181818;
+  border-radius: 8px;
+  padding: 16px;
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+}
+
+.track-card:hover {
+  background: #282828;
+}
+
+.track-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.track-card .track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.track-card .track-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-card .track-artist {
+  color: #b3b3b3;
+  font-size: 14px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

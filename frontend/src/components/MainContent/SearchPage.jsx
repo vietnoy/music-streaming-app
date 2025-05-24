@@ -6,6 +6,8 @@ import { usePlayer } from "../../context/PlayerContext";
 import "../../styles/MainContent/PlaylistPage.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
+import { Link } from "react-router-dom";
+
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -31,9 +33,72 @@ const SearchPage = () => {
     }
   }, [token]);
 
+  useEffect(() => {
+    console.log("queue", queue);
+
+
+  }, [queue]);
+
   const [params] = useSearchParams();
   const query = params.get("query") || "";
   const filterBy = params.get("filter_by") || "track";
+  const resultsParam = params.get("results");
+
+  const parseEmotionResults = () => {
+    if (!resultsParam) return null;
+    try {
+      const decodedResults = decodeURIComponent(resultsParam);
+      const parsedResults = JSON.parse(decodedResults);
+      if (parsedResults.reply) {
+        const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
+        return JSON.parse(jsonStr);
+      }
+      return null;
+    } catch (err) {
+      console.error("Failed to parse emotion results:", err);
+      return null;
+    }
+  };
+
+useEffect(() => {
+  const fetchEmotionResults = async () => {
+    if (filterBy === "emotion" && resultsParam) {
+      try {
+        const decodedResults = decodeURIComponent(resultsParam);
+        const parsedResults = JSON.parse(decodedResults);
+
+        if (parsedResults.reply) {
+          const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
+          const mood = JSON.parse(jsonStr).mood;
+          console.log("Mood:", mood);
+
+          const res = await authFetch(`${API_BASE}/api/music/recommendations/emotion/${mood}`);
+          const data = await res.json();
+
+          setResults(data);
+          console.log("Emotion results:", data);
+        }
+      } catch (err) {
+        console.error("Lỗi khi fetch emotion results:", err);
+      }
+    }
+  };
+
+  fetchEmotionResults(); 
+}, [query]); 
+
+
+  // const handleKeyDown = async (e) => {
+  //   if (e.key === 'Enter' && filterBy === "emotion") {
+  //     const decodedResults = decodeURIComponent(resultsParam);
+  //     const parsedResults = JSON.parse(decodedResults);
+  //     const jsonStr = parsedResults.reply.replace(/```json\n|\n```/g, '');
+  //     const res = authFetch.get(`http://localhost:8000/api/music/recommendations/emotion/${JSON.parse(jsonStr).mood}`);
+  //     const data = res.json();
+  //     setResults(data);
+  //     console.log("Emotion results:", data);
+  //   }
+  // };
 
   const addToQueue = async (trackId) => {
     const track = results.find((t) => t.id === trackId);
@@ -70,7 +135,7 @@ const SearchPage = () => {
   const addToPlaylist = async (trackId, playlistId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await authFetch(`${API_BASE}/api/music/user/${userId}/add_track_to_playlist`, {
+      const response = await authFetch(`${API_BASE}/api/music/user/add_track_to_playlist`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -103,12 +168,12 @@ const SearchPage = () => {
   
     if (!trimmedQuery) {
       setResults([]);
-      setIsLoading(false); // stop loading if query is empty
+      setIsLoading(false);
       return;
     }
   
     const fetchResults = async () => {
-      setIsLoading(true); // Show shimmer
+      setIsLoading(true);
   
       try {
         const res = await fetch(`${API_BASE}/api/music/search?query=${encodeURIComponent(query)}&filter_by=${filterBy}`);
@@ -124,7 +189,7 @@ const SearchPage = () => {
         console.error("Search failed", err);
         setResults([]);
       } finally {
-        setIsLoading(false); // Hide shimmer
+        setIsLoading(false);
       }
     };
   
@@ -151,7 +216,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`${API_BASE}/api/music/user/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -165,7 +230,7 @@ const SearchPage = () => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist`);
         const data = await res.json();
         // Exclude "Liked Songs" and filter to only include playlists
         const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
@@ -186,7 +251,7 @@ const SearchPage = () => {
   
     try {
       const method = isLiked ? "DELETE" : "POST";
-      await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_BASE}/api/music/user/liked_track?track_id=${trackId}`, {
         method: method,
         headers: {
           "Authorization": `Bearer ${token}`
@@ -200,6 +265,32 @@ const SearchPage = () => {
       );
     }
   };
+  // const appendSuggestionsIfNeeded = async () => {
+  //   if (!currentSong || queue.length === 0) return;
+
+  //   const isLastSong = queue.length === 1 && currentSong.id === queue[0].id;
+  //   if (!isLastSong) return;
+
+  //   try {
+  //     const res = await fetch(`http://localhost:8000/api/music/related/${currentSong.id}`);
+  //     const related = await res.json();
+
+  //     const enriched = await Promise.all(related.map(async (track) => {
+  //       const urlRes = await fetch(`http://localhost:8000/api/music/mp3url/${encodeURIComponent(track.track_name)}`);
+  //       const urlData = await urlRes.json();
+  //       return { ...track, mp3_url: urlData.url };
+  //     }));
+
+  //     const validTracks = enriched.filter(Boolean);
+  //     setQueue((prev) => [...prev, ...validTracks]);
+  //   } catch (err) {
+  //     console.error("Failed to fetch related songs:", err);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   appendSuggestionsIfNeeded();
+  // });
 
   return (
     <div className="search-results-page">
@@ -213,6 +304,149 @@ const SearchPage = () => {
             {Array.from({ length: 8 }).map((_, i) => (
               <div className="skeleton-row shimmer" key={i}></div>
             ))}
+          </div>
+        ) : filterBy === "emotion" ? (
+          <div className="emotion-results">
+            {(() => {
+              const emotionData = parseEmotionResults();
+              if (!emotionData) {
+                return <div className="no-results">No emotion analysis available</div>;
+              }
+              return (
+                <>
+                  <div className="emotion-response">
+                    <div className="emotion-intro">{emotionData.intro}</div>
+                    <div className="emotion-mood">
+                      <span className="mood-label">Detected Mood:</span>
+                      <span className="mood-value">{emotionData.mood}</span>
+                    </div>
+                  </div>
+                  <table className="track-table">
+                    <thead>
+                      <tr>
+                        <th className="col-number">#</th>
+                        <th className="col-title">Title</th>
+                        <th className="col-album">Album</th>
+                        <th className="col-duration">Duration</th>
+                        <th className="col-like"></th>
+                        <th className="col-option"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((track, i) => {
+                        const isLiked = likedTrackIds.includes(track.id);
+                        const isCurrent = currentSong?.id === track.id;
+                        return (
+                          <tr key={track.id} className={isCurrent && isPlaying ? "playing" : ""}>
+                            <td className="col-number">
+                              <div className="row-number-wrapper">
+                                {isCurrent && isPlaying ? (
+                                  <div className="playing-bars">
+                                    <span className="bar bar1"></span>
+                                    <span className="bar bar2"></span>
+                                    <span className="bar bar3"></span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <span className="track-number">{i + 1}</span>
+                                    <FaPlay
+                                      className="play-icon-row"
+                                      onClick={async () => {
+                                        try {
+                                          const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(track.title)}`);
+                                          const data = await res.json();
+                                          const enriched = {
+                                            id: track.id,
+                                            track_name: track.title,
+                                            artist_name: track.artist,
+                                            album: track.album,
+                                            image_url: track.cover_url,
+                                            duration: track.duration,
+                                            mp3_url: data.url,
+                                          };
+                                          playSong(enriched);
+                                        } catch (err) {
+                                          console.error("Failed to fetch mp3_url:", err);
+                                        }
+                                      }}
+                                    />
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                            <td className="track-title-cell col-date">
+                              <img src={track.cover_url} alt={track.title} className="track-image" />
+                              <div className="track-info">
+                                <p className="track-title">{track.title}</p>
+                                <span className="track-artist">
+                                  {(track.artist?.split(", ") || []).map((name, idx) => {
+                                    const ids = track.artist_id?.split(", ");
+                                    const artistId = ids?.[idx];
+                                    return (
+                                      <React.Fragment key={idx}>
+                                        {artistId ? (
+                                          <Link to={`/artist/${artistId}`}>{name}</Link>
+                                        ) : (
+                                          name
+                                        )}
+                                        {idx < track.artist.split(", ").length - 1 && ", "}
+                                      </React.Fragment>
+                                    );
+                                  })}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="col-album">
+                              <Link to={`/album/${track.album_id}`}>{track.album}</Link>
+                            </td>
+                            <td className="col-duration">{track.duration}</td>
+                            <td className="col-like">
+                              <button className="add-btn" onClick={() => toggleLike(track.id)}>
+                                {isLiked ? <FaHeart color="#1DB954" /> : <FaRegHeart />}
+                              </button>
+                            </td>
+                            <td className="track-options col-option">
+                              <div className="options-wrapper" ref={(el) => (menuRefs.current[track.id] = el)}>
+                                <button className="options-button" onClick={() => setOpenMenuId(track.id)}>
+                                  &#x22EE;
+                                </button>
+                                {openMenuId === track.id && (
+                                  <div className="options-menu show">
+                                    <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
+                                    <div 
+                                      className="playlist-submenu"
+                                      onMouseEnter={() => setHoveredTrackId(track.id)}
+                                      onMouseLeave={() => setHoveredTrackId(null)}
+                                    >
+                                      <button>Add to Playlist</button>
+                                      {hoveredTrackId === track.id && userPlaylists.length > 0 && (
+                                        <div className="playlist-options" onMouseEnter={() => setHoveredTrackId(track.id)}>
+                                          {userPlaylists
+                                          .filter((pl) => pl.type === "playlist")
+                                          .map((pl) => (
+                                            <div
+                                              key={pl.id}
+                                              className="playlist-item"
+                                              onClick={() => addToPlaylist(track.id, pl.id)}
+                                            >
+                                              {pl.name}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </>
+              );
+            })()}
           </div>
         ) : filterBy === "track" ? (
           <table className="track-table">
@@ -326,7 +560,9 @@ const SearchPage = () => {
                               <button>Add to Playlist</button>
                               {hoveredTrackId === track.id && userPlaylists.length > 0 && (
                                 <div className="playlist-options" onMouseEnter={() => setHoveredTrackId(track.id)}>
-                                  {userPlaylists.map((pl) => (
+                                  {userPlaylists
+                                  .filter((pl) => pl.type === "playlist")
+                                  .map((pl) => (
                                     <div
                                       key={pl.id}
                                       className="playlist-item"

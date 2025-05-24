@@ -31,7 +31,7 @@ const PlaylistPage = () => {
       const token = localStorage.getItem("token");
       const user = JSON.parse(localStorage.getItem("user"));
       const userId = user?.id;  
-      await authFetch(`${API_BASE}/api/music/user/${userId}/playlist/${playlistId}`, {
+      await authFetch(`${API_BASE}/api/music/user_playlist/${playlistId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -85,6 +85,9 @@ const PlaylistPage = () => {
 
     const mp3Url = await fetchMp3Url(track.track_name);
     const enrichedTrack = { ...track, mp3_url: mp3Url };
+    
+    // console.log("enrichedTrack:", enrichedTrack);
+    // console.log("rest:", rest);
 
     playSong(enrichedTrack, rest);
   };

@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import "../styles/Navbar.css";
-import { FaBell, FaUserCircle, FaChevronDown, FaHome } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { FaBell, FaUserCircle, FaChevronDown, FaHome, FaSearch, FaMicrophone } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; 
+
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const Navbar = ({ username, profilePicture }) => {
   const location = useLocation();
@@ -49,6 +50,7 @@ const Navbar = ({ username, profilePicture }) => {
   }, []);
 
   useEffect(() => {
+    if (searchType === "Emotion") return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!searchTerm.trim()) return;
 
@@ -62,12 +64,43 @@ const Navbar = ({ username, profilePicture }) => {
   const handleSignOut = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
+    fetch(`${API_BASE}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
     window.location.href = "/signin";
   };
 
   const handleDropdownClick = (type) => {
     setSearchType(type);
     setShowDropdown(false);
+  };
+
+  const handleEmotionSearch = async (query) => {
+    try {
+      const formData = new FormData();
+      formData.append('prompt', query);
+
+      const res = await fetch(`${API_BASE}/api/music/ask`, {
+        method: 'POST',
+        body: formData
+      });
+      // const res = await fetch(`http://localhost:8000/api/music/ask`, {
+      //   method: 'POST',
+      //   body: formData
+      // });
+      
+      
+      const data = await res.json();
+      navigate(`/search?query=${encodeURIComponent(query)}&filter_by=emotion&results=${encodeURIComponent(JSON.stringify(data))}`);
+    } catch (err) {
+      console.error("Failed to get emotion-based recommendations:", err);
+    }
+  };
+
+  const handleEmotionClick = (type) => {
+    setShowDropdown(false);
+    setSearchType(type);
   };
 
   return (
@@ -84,16 +117,22 @@ const Navbar = ({ username, profilePicture }) => {
           <input
             type="text"
             className="search-input"
-            placeholder={`What do you want to play?`}
+            placeholder={
+              searchType === "Emotion"
+                ? "How are you feeling today?"
+                : "What do you want to play?"
+            }
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value);
-              window.history.pushState(null, "", `/search?query=${encodeURIComponent(e.target.value)}&filter_by=${searchType.toLowerCase()}`);
+              if (searchType !== "Emotion") {
+                window.history.pushState(null, "", `/search?query=${encodeURIComponent(e.target.value)}&filter_by=${searchType.toLowerCase()}`);
+              }
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && searchType === "Emotion") {
                 e.preventDefault();
-                navigate(`/search?query=${encodeURIComponent(searchTerm)}&filter_by=${searchType.toLowerCase()}`);
+                handleEmotionSearch(searchTerm);
               }
             }}
           />
@@ -105,11 +144,15 @@ const Navbar = ({ username, profilePicture }) => {
               Search by {searchType} <FaChevronDown className="arrow-icon" />
             </div>
             <div className={`search-filter-dropdown ${showDropdown ? "show" : ""}`}>
-              {["Track", "Artist", "Album"].map((type) => (
+              {["Track", "Artist", "Album", "Emotion"].map((type) => (
                 <div
                   key={type}
                   className="dropdown-item"
-                  onClick={() => handleDropdownClick(type)}
+                  onClick={() =>
+                    type === "Emotion"
+                      ? handleEmotionClick(type)
+                      : handleDropdownClick(type)
+                  }
                 >
                   {type}
                 </div>
@@ -120,7 +163,7 @@ const Navbar = ({ username, profilePicture }) => {
       </div>
 
       <div className="nav-right">
-        <FaBell className="nav-icon" />
+        {/* <FaBell className="nav-icon" /> */}
         <div
           className="profile-wrapper"
           ref={menuRef}

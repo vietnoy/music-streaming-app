@@ -1,6 +1,6 @@
 import os, pickle, faiss
 import pandas as pd
-from io import BytesIO
+from io import BytesIO, StringIO
 from google.cloud import storage, bigquery
 import tempfile
 
@@ -39,7 +39,7 @@ class Recommender:
             FROM `silicon-stock-452315-h4.music_recommend.recommend`
             WHERE user_id = @user_id
             ORDER BY recommended_at DESC
-            LIMIT 50
+            LIMIT 15
         """
         job_config = bigquery.QueryJobConfig(
             query_parameters=[
@@ -50,4 +50,28 @@ class Recommender:
         results = query_job.result()
         return [row.track_id for row in results]
 
+    def get_emo_recommendations(self, user_id, emo):
+        emo = emo.lower()
+        query = """
+            SELECT track_id
+            FROM `silicon-stock-452315-h4.music_recommend.emotion-recommend`
+            WHERE user_id = @user_id 
+            AND emotion = @emo 
+            AND TIMESTAMP_TRUNC(recommended_at, MINUTE) = (
+                SELECT TIMESTAMP_TRUNC(MAX(recommended_at), MINUTE)
+                FROM `silicon-stock-452315-h4.music_recommend.emotion-recommend`
+                WHERE user_id = @user_id AND emotion = @emo
+            );
+
+        """
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("user_id", "STRING", user_id),
+                bigquery.ScalarQueryParameter("emo", "STRING", emo),
+            ]
+        )
+        query_job = self.bq_client.query(query, job_config=job_config)
+        results = query_job.result()
+        return [row.track_id for row in results]
+    
 recommender = Recommender()

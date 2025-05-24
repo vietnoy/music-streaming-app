@@ -5,6 +5,7 @@ import "../../styles/MainContent/MainContent.css";
 import { jwtDecode } from "jwt-decode";
 import { authFetch } from '../../utils/authFetch';
 
+
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const MainContent = () => {
@@ -19,7 +20,7 @@ const MainContent = () => {
 
     const fetchPlaylists = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist`);
         const data = await res.json();
 
         // Separate data by type
@@ -59,7 +60,7 @@ const MainContent = () => {
         setSavedAlbums(formatted.filter((item) => item.type === "single" || item.type === "composite"));
         setLikedArtists(formatted.filter((item) => item.type === "artist"));
       } catch (err) {
-        console.error("Failed to fetch user library:", err);
+        console.error("Failed to fetch playlists:", err);
       }
     };
 

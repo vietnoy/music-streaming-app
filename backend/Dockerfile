@@ -9,14 +9,13 @@ RUN apt-get update && \
         libffi-dev \
         python3-dev \
         cargo \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy toàn bộ source code vào container
 COPY . .
 
 # Pre-load models during build time

@@ -20,13 +20,14 @@ const Home = () => {
 
   const [likedTrackIds, setLikedTrackIds] = useState([]);
   const [userPlaylists, setUserPlaylists] = useState([]);
+  const [isQueueVisible, setIsQueueVisible] = useState(false);
   const { currentSong, isPlaying, playSong, stop, nextSong, prevSong } = usePlayer();
 
   // Fetch liked tracks
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`${API_BASE}/api/music/user/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -41,7 +42,7 @@ const Home = () => {
   useEffect(() => {
     const fetchPlaylists = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist`);
         const data = await res.json();
         const customPlaylists = data.filter((pl) => pl.name !== "Liked Songs");
         setUserPlaylists(customPlaylists);
@@ -59,7 +60,7 @@ const Home = () => {
     const method = isLiked ? "DELETE" : "POST";
 
     try {
-      await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track?track_id=${currentSong.id}`, {
+      await authFetch(`${API_BASE}/api/music/user/liked_track?track_id=${currentSong.id}`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -74,7 +75,7 @@ const Home = () => {
 
   const handleAddTrackToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`${API_BASE}/api/music/user/${userId}/add_track_to_playlist`, {
+      await authFetch(`${API_BASE}/api/music/user/add_track_to_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -98,7 +99,10 @@ const Home = () => {
         <div className="main-outlet">
           <Outlet />
         </div>
-        <RightContent currentSong={currentSong} />
+        <RightContent 
+          currentSong={currentSong} 
+          isQueueVisible={isQueueVisible}
+        />
       </div>
 
       <MusicPlayer
@@ -115,6 +119,8 @@ const Home = () => {
         onToggleLike={handleToggleLike}
         onAddTrackToPlaylist={handleAddTrackToPlaylist}
         onToggleFullscreen={() => alert("Fullscreen not implemented")}
+        onToggleQueue={() => setIsQueueVisible(!isQueueVisible)}
+        isQueueVisible={isQueueVisible}
       />
     </div>
   );
