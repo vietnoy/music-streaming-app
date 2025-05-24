@@ -228,3 +228,12 @@
   width: 40px;
   text-align: center;
 }
+
+.icon-button.active {
+  color: #1DB954;
+}
+
+.icon-button:hover {
+  color: #1DB954;
+  transform: scale(1.1);
+}

@@ -41,6 +41,7 @@ def get_db():
 ### JWT helper
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    # expire = datetime.utcnow() + (expires_delta or timedelta(minutes=2))
     to_encode = data.copy()
     to_encode.update({"exp": expire})
     # print(f"Token creat at: {datetime.utcnow()}")
@@ -51,6 +52,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS))
+    # expire = datetime.utcnow() + (expires_delta or timedelta(minutes=3))
+
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -148,7 +151,7 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
         "sub": str(user.id),
         "roles": user.roles.split(",") if user.roles else ["user"]
     })
-    refresh_token = create_refresh_token(data={"username": str(user.username)})
+    refresh_token = create_refresh_token(data={"userId": str(user.id)})
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
@@ -157,6 +160,7 @@ def signin(credentials: UserLogin, response: Response, db: Session = Depends(get
         samesite="lax",
         # path="api/auth/refresh-token",
         expires=timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        # expires=timedelta(minutes=3)
     )
     return {
         "access_token": access_token,
@@ -178,13 +182,13 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
 
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("username")
-        if username is None:
+        userId: str = payload.get("userId")
+        if userId is None:
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.id == userId).first()
     if user is None:
         raise HTTPException(status_code=401, detail="User not found")
 
@@ -203,6 +207,10 @@ def refresh_token(request: Request, response: Response, db: Session = Depends(ge
         },
     }
 
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("refresh_token")
+    return {"message": "Logged out"}
 
 ### Protected test route
 @router.get("/home")

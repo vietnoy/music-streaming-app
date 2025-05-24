@@ -7,7 +7,7 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
  */
 export const authFetch = async (url, options = {}) => {
   const token = localStorage.getItem("token");
-  
+  const isFormData = options.body instanceof FormData;
   // If no token at all, redirect to login with current path
   if (!token) {
     console.warn("No token found. Redirecting to login...");
@@ -24,7 +24,7 @@ export const authFetch = async (url, options = {}) => {
     headers: {
       ...(options.headers || {}),
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
     },
     credentials: "include",
   });

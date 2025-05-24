@@ -32,7 +32,9 @@ const AlbumPage = () => {
     if (index === -1) return;
     const song = album.tracks[index];
     const rest = album.tracks.slice(index + 1);
-    playSong(song, rest);
+    const mp3Url = await fetchMp3Url(song.track_name);
+    const enrichedSong = { ...song, mp3_url: mp3Url };
+    playSong(enrichedSong, rest);
 
     if (isAdded) {
       try {
@@ -49,18 +51,21 @@ const AlbumPage = () => {
   };
 
   const toggleLike = async (trackId) => {
+    const isLiked = likedTrackIds.includes(trackId);
+    setLikedTrackIds((prev) =>
+      isLiked ? prev.filter((id) => id !== trackId) : [...prev, trackId]
+    );
+
     try {
       const method = likedTrackIds.includes(trackId) ? "DELETE" : "POST";
-      await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_BASE}/api/music/user/liked_track?track_id=${trackId}`, {
         method: method,
         headers: { Authorization: `Bearer ${token}` },
       });
-
+    } catch {
       setLikedTrackIds((prev) =>
-        method === "POST" ? [...prev, trackId] : prev.filter((id) => id !== trackId)
+        isLiked ? [...prev, trackId] : prev.filter((id) => id !== trackId)
       );
-    } catch (error) {
-      console.error("Error toggling like:", error);
     }
   };
 
@@ -92,7 +97,7 @@ const AlbumPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`${API_BASE}/api/music/user/${userId}/add_track_to_playlist`, {
+      await authFetch(`${API_BASE}/api/music/user/add_track_to_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,46 +113,43 @@ const AlbumPage = () => {
   };
 
   useEffect(() => {
-    const fetchAlbum = async () => {
+    const fetchAll = async () => {
       try {
         const [albumRes, songRes] = await Promise.all([
           fetch(`${API_BASE}/api/music/album/${albumId}`),
           fetch(`${API_BASE}/api/music/album/${albumId}/songs`),
         ]);
         const albumData = await albumRes.json();
-        const songData = await songRes.json();
+        const tracks = await songRes.json();
 
-        const formattedTracks = songData.map((song) => ({
-          id: song.id,
-          track_name: song.title,
-          artist_name: song.artist,
-          album: song.album,
-          duration: song.duration,
-          image_url: song.cover_url,
-          date_added: song.date_added,
-          album_id: song.album_id,
+        const formatted = tracks.map((t) => ({
+          id: t.id,
+          track_name: t.title,
+          artist_name: t.artist,
+          album: t.album,
+          album_id: t.album_id,
+          duration: t.duration,
+          image_url: t.cover_url,
         }));
 
         setAlbum({
-          id: albumData.id,
+          id: albumId,
           name: albumData.name,
-          artist: albumData.artist_name,
-          artist_id: albumData.artist_id,
           image: albumData.cover_image_url,
-          tracks: formattedTracks,
+          tracks: formatted,
         });
       } catch (err) {
-        console.error("Failed to fetch album:", err);
+        console.error("Failed to fetch album data:", err);
       }
     };
 
-    fetchAlbum();
+    fetchAll();
   }, [albumId]);
 
   useEffect(() => {
     const fetchLikedTracks = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track_ids`);
+        const res = await authFetch(`${API_BASE}/api/music/user/liked_track_ids`);
         const data = await res.json();
         setLikedTrackIds(data);
       } catch (err) {
@@ -161,7 +163,7 @@ const AlbumPage = () => {
   useEffect(() => {
     const fetchUserPlaylists = async () => {
       try {
-        const res = await authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`);
+        const res = await authFetch(`${API_BASE}/api/music/user_playlist`);
         const data = await res.json();
         if (album?.id) {
           setIsAdded(data.some(item => item.id === album.id));
@@ -197,7 +199,7 @@ const AlbumPage = () => {
       (album.artist_id?.split(", ").length || 0) > 1 ? "composite" : "single";
   
     try {
-      await authFetch(`${API_BASE}/api/music/${userId}/add_to_library/${album.id}?type=${albumType}`, {
+      await authFetch(`${API_BASE}/api/music/add_to_library/${album.id}?type=${albumType}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -212,7 +214,7 @@ const AlbumPage = () => {
 
   const removeAlbum = async () => {
     try {
-      await authFetch(`${API_BASE}/api/music/${userId}/remove_from_library/${album.id}`, {
+      await authFetch(`${API_BASE}/api/music/remove_from_library/${album.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -337,7 +339,9 @@ const AlbumPage = () => {
                               <button>Add to Playlist</button>
                               {hoveredTrackId === track.id && userPlaylists.length > 0 && (
                                 <div className="playlist-options">
-                                  {userPlaylists.map((pl) => (
+                                  {userPlaylists
+                                  .filter((pl) => pl.type === "playlist")
+                                  .map((pl) => (
                                     <div
                                       key={pl.id}
                                       className="playlist-item"

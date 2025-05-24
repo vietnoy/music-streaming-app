@@ -51,7 +51,7 @@ const ArtistPage = () => {
 
   const addToPlaylist = async (trackId, playlistId) => {
     try {
-      await authFetch(`${API_BASE}/api/music/user/${userId}/add_track_to_playlist`, {
+      await authFetch(`${API_BASE}/api/music/user/add_track_to_playlist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -74,7 +74,7 @@ const ArtistPage = () => {
 
     try {
       const method = isLiked ? "DELETE" : "POST";
-      await authFetch(`${API_BASE}/api/music/user/${userId}/liked_track?track_id=${trackId}`, {
+      await authFetch(`${API_BASE}/api/music/user/liked_track?track_id=${trackId}`, {
         method,
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -145,7 +145,7 @@ const ArtistPage = () => {
 
   useEffect(() => {
     if (!userId) return;
-    authFetch(`${API_BASE}/api/music/user/${userId}/liked_track_ids`)
+    authFetch(`${API_BASE}/api/music/user/liked_track_ids`)
       .then((res) => res.json())
       .then(setLikedTrackIds)
       .catch(console.error);
@@ -153,7 +153,7 @@ const ArtistPage = () => {
 
   useEffect(() => {
     if (!userId || !artist) return;
-    authFetch(`${API_BASE}/api/music/user_playlist?user_id=${userId}`)
+    authFetch(`${API_BASE}/api/music/user_playlist`)
       .then((res) => res.json())
       .then((data) => {
         const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
@@ -183,7 +183,7 @@ const ArtistPage = () => {
 
   const addArtist = async () => {
     try {
-      await authFetch(`${API_BASE}/api/music/${userId}/add_to_library/${artist.id}?type=artist`, {
+      await authFetch(`${API_BASE}/api/music/add_to_library/${artist.id}?type=artist`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -198,7 +198,7 @@ const ArtistPage = () => {
     
   const removeArtist = async () => {
     try {
-      await authFetch(`${API_BASE}/api/music/${userId}/remove_from_library/${artist.id}`, {
+      await authFetch(`${API_BASE}/api/music/remove_from_library/${artist.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`
@@ -311,7 +311,9 @@ const ArtistPage = () => {
                               <button>Add to Playlist</button>
                               {hoveredTrackId === track.id && userPlaylists.length > 0 && (
                                 <div className="playlist-options">
-                                  {userPlaylists.map((pl) => (
+                                  {userPlaylists
+                                  .filter((pl) => pl.type === "playlist")
+                                  .map((pl) => (
                                     <div
                                       key={pl.id}
                                       className="playlist-item"
