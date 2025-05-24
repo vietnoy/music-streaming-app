@@ -1,79 +1,43 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // ✅ Add useNavigate
+import { useParams, useNavigate } from "react-router-dom";
 import "../../styles/MainContent/PlaylistPage.css";
 import { formatDistanceToNow } from "date-fns";
 import { FaPlay } from "react-icons/fa";
 import { usePlayer } from "../../context/PlayerContext";
 import { authFetch } from '../../utils/authFetch';
+import { updateLastPlayed } from '../../utils/lastPlayed';
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const PlaylistPage = () => {
   const { playlistId } = useParams();
-  const navigate = useNavigate(); // ✅ Add navigate hook
+  const navigate = useNavigate();
   const [playlist, setPlaylist] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
-  const { currentSong, isPlaying, queue, playSong, setQueue, stop } = usePlayer();
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditDropdown, setShowEditDropdown] = useState(false);
-  const editDropdownRef = useRef(null);
   const [editFields, setEditFields] = useState({
-    name: playlist?.name || "",
-    description: playlist?.description || "",
+    name: "",
+    description: "",
     cover: null
   });
-
-  const handleDeletePlaylist = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete this playlist?");
-    if (!confirmed) return;
-    
-    try {
-      const token = localStorage.getItem("token");
-      const user = JSON.parse(localStorage.getItem("user"));
-      const userId = user?.id;  
-      await authFetch(`${API_BASE}/api/music/user_playlist/${playlistId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      navigate("/"); // ✅ Use navigate instead of window.location.href
-    } catch (err) {
-      console.error("Failed to delete playlist:", err);
-    }
-  };
-
-  const handleUpdatePlaylist = async () => {
-    const formData = new FormData();
-    if (editFields.name) formData.append("name", editFields.name);
-    if (editFields.description) formData.append("description", editFields.description);
-    if (editFields.cover) formData.append("cover_image", editFields.cover);
   
-    try {
-      const token = localStorage.getItem("token");
-      await fetch(`${API_BASE}/api/music/playlist/${playlistId}/edit`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      });
-      setShowEditModal(false);
-      // ✅ Instead of window.location.reload(), refetch the data
-      fetchPlaylist();
-    } catch (err) {
-      console.error("Failed to update playlist:", err);
-    }
-  };
-
+  const { currentSong, isPlaying, queue, playSong, setQueue, stop } = usePlayer();
+  const editDropdownRef = useRef(null);
   const menuRefs = useRef({});
-  const isCurrentPlaylistPlaying =
-    playlist?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
+  const token = localStorage.getItem("token");
+
+  const isCurrentPlaylistPlaying = playlist?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
 
   const fetchMp3Url = async (trackName) => {
-    const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(trackName)}`);
-    const data = await res.json();
-    return data.url;
+    try {
+      const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(trackName)}`);
+      const data = await res.json();
+      return data.url;
+    } catch (err) {
+      console.error("Failed to fetch MP3 URL:", err);
+      return null;
+    }
   };
 
   const playSongFrom = async (trackId) => {
@@ -82,26 +46,34 @@ const PlaylistPage = () => {
 
     const track = playlist.tracks[index];
     const rest = playlist.tracks.slice(index + 1);
-
     const mp3Url = await fetchMp3Url(track.track_name);
-    const enrichedTrack = { ...track, mp3_url: mp3Url };
     
-    // console.log("enrichedTrack:", enrichedTrack);
-    // console.log("rest:", rest);
-
+    if (!mp3Url) return;
+    
+    const enrichedTrack = { ...track, mp3_url: mp3Url };
     playSong(enrichedTrack, rest);
+
+    // Update last played for playlist
+    if (token) {
+      await updateLastPlayed(playlistId, token);
+    }
   };
 
   const addToQueue = async (trackId) => {
     try {
       const track = playlist.tracks.find((t) => t.id === trackId);
       if (!track) return;
-  
+
       const mp3Url = await fetchMp3Url(track.track_name);
+      if (!mp3Url) return;
+      
       const enrichedTrack = { ...track, mp3_url: mp3Url };
-  
+
       if (!isPlaying) {
         playSong(enrichedTrack, []);
+        if (token) {
+          await updateLastPlayed(playlistId, token);
+        }
       } else {
         setQueue([...queue, enrichedTrack]);
       }
@@ -114,7 +86,6 @@ const PlaylistPage = () => {
 
   const removeFromPlaylist = async (trackId) => {
     try {
-      const token = localStorage.getItem("token");
       const res = await fetch(
         `${API_BASE}/api/music/playlist/${playlistId}/remove_track?track_id=${trackId}`,
         {
@@ -122,9 +93,9 @@ const PlaylistPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-  
+
       if (!res.ok) throw new Error("Failed to remove track");
-  
+
       setPlaylist((prev) => ({
         ...prev,
         tracks: prev.tracks.filter((track) => track.id !== trackId),
@@ -136,15 +107,48 @@ const PlaylistPage = () => {
     }
   };
 
-  // ✅ Extract fetchPlaylist function so it can be reused
+  const handleDeletePlaylist = async () => {
+    const confirmed = window.confirm("Are you sure you want to delete this playlist?");
+    if (!confirmed) return;
+    
+    try {
+      await authFetch(`${API_BASE}/api/music/user_playlist/${playlistId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to delete playlist:", err);
+    }
+  };
+
+  const handleUpdatePlaylist = async () => {
+    const formData = new FormData();
+    if (editFields.name) formData.append("name", editFields.name);
+    if (editFields.description) formData.append("description", editFields.description);
+    if (editFields.cover) formData.append("cover_image", editFields.cover);
+
+    try {
+      await fetch(`${API_BASE}/api/music/playlist/${playlistId}/edit`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      setShowEditModal(false);
+      fetchPlaylist();
+    } catch (err) {
+      console.error("Failed to update playlist:", err);
+    }
+  };
+
   const fetchPlaylist = async () => {
     try {
-      const playlistRes = await fetch(`${API_BASE}/api/music/playlist/${playlistId}`);
+      const [playlistRes, songRes] = await Promise.all([
+        fetch(`${API_BASE}/api/music/playlist/${playlistId}`),
+        fetch(`${API_BASE}/api/music/playlist/${playlistId}/songs`)
+      ]);
+      
       const playlistData = await playlistRes.json();
-
-      console.log(playlistData);
-
-      const songRes = await fetch(`${API_BASE}/api/music/playlist/${playlistId}/songs`);
       const songData = await songRes.json();
 
       const formattedTracks = Array.isArray(songData)
@@ -160,7 +164,6 @@ const PlaylistPage = () => {
             date_added: formatDistanceToNow(new Date(song.date_added), { addSuffix: true })
           }))
         : [];
-      console.log(formattedTracks);
 
       setPlaylist({
         id: playlistData.id,
@@ -170,18 +173,21 @@ const PlaylistPage = () => {
         description: playlistData.description || "Your favorite songs all in one place.",
         tracks: formattedTracks,
       });
+
+      setEditFields({
+        name: playlistData.name || "",
+        description: playlistData.description || "",
+        cover: null
+      });
     } catch (err) {
       console.error("Failed to fetch playlist or songs:", err);
     }
   };
 
+  // Handle clicking outside menus
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        openMenuId &&
-        menuRefs.current[openMenuId] &&
-        !menuRefs.current[openMenuId].contains(e.target)
-      ) {
+      if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(e.target)) {
         setOpenMenuId(null);
       }
     };
@@ -190,24 +196,19 @@ const PlaylistPage = () => {
   }, [openMenuId]);
 
   useEffect(() => {
-    fetchPlaylist();
-  }, [playlistId]);
-
-  useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        editDropdownRef.current &&
-        !editDropdownRef.current.contains(event.target)
-      ) {
+      if (editDropdownRef.current && !editDropdownRef.current.contains(event.target)) {
         setShowEditDropdown(false);
       }
     };
-  
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    fetchPlaylist();
+  }, [playlistId]);
 
   if (!playlist) {
     return (
@@ -275,21 +276,17 @@ const PlaylistPage = () => {
             stop();
           } else {
             const firstTrack = playlist.tracks[0];
-            const mp3Url = await fetchMp3Url(firstTrack.track_name);
-            const enrichedFirst = { ...firstTrack, mp3_url: mp3Url };
-        
-            const rest = playlist.tracks.slice(1);
-            playSong(enrichedFirst, rest);
+            if (firstTrack) {
+              const mp3Url = await fetchMp3Url(firstTrack.track_name);
+              if (mp3Url) {
+                const enrichedFirst = { ...firstTrack, mp3_url: mp3Url };
+                const rest = playlist.tracks.slice(1);
+                playSong(enrichedFirst, rest);
 
-            try {
-              await fetch(`${API_BASE}/api/music/library/${playlistId}/last_played`, {
-                method: "PUT",
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              });
-            } catch (err) {
-              console.error("❌ Failed to update last_played:", err);
+                if (token) {
+                  await updateLastPlayed(playlistId, token);
+                }
+              }
             }
           }
         }}
@@ -328,20 +325,7 @@ const PlaylistPage = () => {
                         <span className="track-number">{i + 1}</span>
                         <FaPlay
                           className="play-icon-row"
-                          onClick={async () => {
-                            await playSongFrom(track.id);
-
-                            try {
-                              await fetch(`${API_BASE}/api/music/library/${playlistId}/last_played`, {
-                                method: "PUT",
-                                headers: {
-                                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                                },
-                              });
-                            } catch (err) {
-                              console.error("❌ Failed to update last_played:", err);
-                            }
-                          }}
+                          onClick={() => playSongFrom(track.id)}
                         />
                       </>
                     )}
@@ -403,6 +387,7 @@ const PlaylistPage = () => {
           })}
         </tbody>
       </table>
+
       {showEditModal && (
         <div className="edit-playlist-modal">
           <div className="modal-content">

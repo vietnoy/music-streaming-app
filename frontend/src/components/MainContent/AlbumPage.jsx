@@ -6,6 +6,7 @@ import { usePlayer } from "../../context/PlayerContext";
 import { jwtDecode } from "jwt-decode";
 import SkeletonLoader from "../SkeletonLoader";
 import { authFetch } from '../../utils/authFetch';
+import { updateLastPlayed } from '../../utils/lastPlayed';
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
@@ -17,62 +18,43 @@ const AlbumPage = () => {
   const [userPlaylists, setUserPlaylists] = useState([]);
   const [hoveredTrackId, setHoveredTrackId] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [isAdded, setIsAdded] = useState(false);
   const menuRefs = useRef({});
   const token = localStorage.getItem("token");
   const userId = token ? jwtDecode(token)?.sub : null;
-  const [isAdded, setIsAdded] = useState(false);
 
   const { currentSong, isPlaying, playSong, stop, queue, setQueue } = usePlayer();
 
-  const isCurrentAlbumPlaying =
-    album?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
+  const isCurrentAlbumPlaying = album?.tracks?.some((track) => track.id === currentSong?.id) && isPlaying;
+
+  const fetchMp3Url = async (title) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(title)}`);
+      const data = await res.json();
+      return data.url;
+    } catch (err) {
+      console.error("Failed to fetch MP3 URL:", err);
+      return null;
+    }
+  };
 
   const playSongFrom = async (trackId) => {
     const index = album.tracks.findIndex((t) => t.id === trackId);
     if (index === -1) return;
+    
     const song = album.tracks[index];
     const rest = album.tracks.slice(index + 1);
     const mp3Url = await fetchMp3Url(song.track_name);
+    
+    if (!mp3Url) return;
+    
     const enrichedSong = { ...song, mp3_url: mp3Url };
     playSong(enrichedSong, rest);
 
-    if (isAdded) {
-      try {
-        await fetch(`${API_BASE}/api/music/library/${album.id}/last_played`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-      } catch (err) {
-        console.error("❌ Failed to update album last_played:", err);
-      }
+    // Update last played if album is in user's library
+    if (isAdded && token) {
+      await updateLastPlayed(album.id, token);
     }
-  };
-
-  const toggleLike = async (trackId) => {
-    const isLiked = likedTrackIds.includes(trackId);
-    setLikedTrackIds((prev) =>
-      isLiked ? prev.filter((id) => id !== trackId) : [...prev, trackId]
-    );
-
-    try {
-      const method = likedTrackIds.includes(trackId) ? "DELETE" : "POST";
-      await authFetch(`${API_BASE}/api/music/user/liked_track?track_id=${trackId}`, {
-        method: method,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    } catch {
-      setLikedTrackIds((prev) =>
-        isLiked ? [...prev, trackId] : prev.filter((id) => id !== trackId)
-      );
-    }
-  };
-
-  const fetchMp3Url = async (title) => {
-    const res = await fetch(`${API_BASE}/api/music/mp3url/${encodeURIComponent(title)}`);
-    const data = await res.json();
-    return data.url;
   };
 
   const addToQueue = async (trackId) => {
@@ -81,10 +63,15 @@ const AlbumPage = () => {
 
     try {
       const mp3Url = await fetchMp3Url(track.track_name);
+      if (!mp3Url) return;
+      
       const enriched = { ...track, mp3_url: mp3Url };
 
       if (!isPlaying) {
         playSong(enriched, []);
+        if (isAdded && token) {
+          await updateLastPlayed(album.id, token);
+        }
       } else {
         setQueue([...queue, enriched]);
       }
@@ -112,6 +99,54 @@ const AlbumPage = () => {
     }
   };
 
+  const toggleLike = async (trackId) => {
+    const isLiked = likedTrackIds.includes(trackId);
+    setLikedTrackIds((prev) =>
+      isLiked ? prev.filter((id) => id !== trackId) : [...prev, trackId]
+    );
+
+    try {
+      const method = isLiked ? "DELETE" : "POST";
+      await authFetch(`${API_BASE}/api/music/user/liked_track?track_id=${trackId}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      setLikedTrackIds((prev) =>
+        isLiked ? [...prev, trackId] : prev.filter((id) => id !== trackId)
+      );
+    }
+  };
+
+  const addAlbum = async () => {
+    const albumType = (album.artist_id?.split(", ").length || 0) > 1 ? "composite" : "single";
+  
+    try {
+      await authFetch(`${API_BASE}/api/music/add_to_library/${album.id}?type=${albumType}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsAdded(true);
+      console.log("Album added to library as:", albumType);
+    } catch (err) {
+      console.error(`Error while adding to user library: ${err}`);
+    }
+  };
+
+  const removeAlbum = async () => {
+    try {
+      await authFetch(`${API_BASE}/api/music/remove_from_library/${album.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsAdded(false);
+      console.log("Album removed from library");
+    } catch (err) {
+      console.error(`Error while removing album from library: ${err}`);
+    }
+  };
+
+  // Fetch album data
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -136,6 +171,8 @@ const AlbumPage = () => {
           id: albumId,
           name: albumData.name,
           image: albumData.cover_image_url,
+          artist: albumData.artist_name,
+          artist_id: albumData.artist_id,
           tracks: formatted,
         });
       } catch (err) {
@@ -146,8 +183,10 @@ const AlbumPage = () => {
     fetchAll();
   }, [albumId]);
 
+  // Fetch liked tracks
   useEffect(() => {
     const fetchLikedTracks = async () => {
+      if (!userId) return;
       try {
         const res = await authFetch(`${API_BASE}/api/music/user/liked_track_ids`);
         const data = await res.json();
@@ -157,17 +196,19 @@ const AlbumPage = () => {
       }
     };
 
-    if (userId) fetchLikedTracks();
+    fetchLikedTracks();
   }, [userId]);
 
+  // Fetch user playlists and check if album is added
   useEffect(() => {
     const fetchUserPlaylists = async () => {
+      if (!userId || !album?.id) return;
+      
       try {
         const res = await authFetch(`${API_BASE}/api/music/user_playlist`);
         const data = await res.json();
-        if (album?.id) {
-          setIsAdded(data.some(item => item.id === album.id));
-        }
+        
+        setIsAdded(data.some(item => item.id === album.id));
         const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
         setUserPlaylists(filtered);
       } catch (err) {
@@ -175,57 +216,19 @@ const AlbumPage = () => {
       }
     };
   
-    if (userId && album?.id) {
-      fetchUserPlaylists();
-    }
+    fetchUserPlaylists();
   }, [userId, album]);
 
+  // Handle clicking outside menu
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        openMenuId &&
-        menuRefs.current[openMenuId] &&
-        !menuRefs.current[openMenuId].contains(e.target)
-      ) {
+      if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(e.target)) {
         setOpenMenuId(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openMenuId]);
-
-  const addAlbum = async () => {
-    const albumType =
-      (album.artist_id?.split(", ").length || 0) > 1 ? "composite" : "single";
-  
-    try {
-      await authFetch(`${API_BASE}/api/music/add_to_library/${album.id}?type=${albumType}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setIsAdded(true);
-      console.log("Album added to library as:", albumType);
-    } catch (err) {
-      console.error(`Error while adding to user library: ${err}`);
-    }
-  };
-
-  const removeAlbum = async () => {
-    try {
-      await authFetch(`${API_BASE}/api/music/remove_from_library/${album.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setIsAdded(false);
-      console.log("Album removed from library");
-    } catch (err) {
-      console.error(`Error while removing album from library: ${err}`);
-    }
-  };
 
   if (!album) return <SkeletonLoader/>;
 
@@ -245,7 +248,7 @@ const AlbumPage = () => {
             </button> • {album.tracks.length} songs
           </p>
           <button
-            className={`add-button`}
+            className="add-button"
             onClick={isAdded ? removeAlbum : addAlbum}
           >
             {isAdded ? "Remove" : "Add +"}
@@ -328,33 +331,30 @@ const AlbumPage = () => {
                       &#x22EE;
                     </button>
                     {openMenuId === track.id && (
-                          <div className="options-menu show">
-                            <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
-
-                            <div 
-                              className="playlist-submenu"
-                              onMouseEnter={() => setHoveredTrackId(track.id)}
-                              onMouseLeave={() => setHoveredTrackId(null)}
-                            >
-                              <button>Add to Playlist</button>
-                              {hoveredTrackId === track.id && userPlaylists.length > 0 && (
-                                <div className="playlist-options">
-                                  {userPlaylists
-                                  .filter((pl) => pl.type === "playlist")
-                                  .map((pl) => (
-                                    <div
-                                      key={pl.id}
-                                      className="playlist-item"
-                                      onClick={() => addToPlaylist(track.id, pl.id)}
-                                    >
-                                      {pl.name}
-                                    </div>
-                                  ))}
+                      <div className="options-menu show">
+                        <button onClick={() => addToQueue(track.id)}>Add to Queue</button>
+                        <div 
+                          className="playlist-submenu"
+                          onMouseEnter={() => setHoveredTrackId(track.id)}
+                          onMouseLeave={() => setHoveredTrackId(null)}
+                        >
+                          <button>Add to Playlist</button>
+                          {hoveredTrackId === track.id && userPlaylists.length > 0 && (
+                            <div className="playlist-options">
+                              {userPlaylists.filter((pl) => pl.type === "playlist").map((pl) => (
+                                <div
+                                  key={pl.id}
+                                  className="playlist-item"
+                                  onClick={() => addToPlaylist(track.id, pl.id)}
+                                >
+                                  {pl.name}
                                 </div>
-                              )}
+                              ))}
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>

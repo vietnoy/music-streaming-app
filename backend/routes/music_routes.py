@@ -27,6 +27,8 @@ from models.user import User
 from .auth_routes import get_current_user
 import requests
 
+ASIA_TIMEZONE = ZoneInfo("Asia/Bangkok")
+
 load_dotenv()
 
 # Configure Cloudinary
@@ -91,19 +93,6 @@ def get_user_playlists(current_user: User = Depends(get_current_user), db: Sessi
             created_at=created_at,
             last_played=last_played
         ))
-
-    # playlists = [
-    #     PlaylistResponse(
-    #         id = row[0],
-    #         name=row[1],
-    #         owner_name=row[2],
-    #         type=row[3],
-    #         cover_image_url=row[4],
-    #         description=row[5],
-    #         created_at=row[6],
-    #     )
-    #     for row in rows
-    # ]
 
     return playlists
 
@@ -337,31 +326,49 @@ def get_album_by_id(album_id: str, db: Session = Depends(get_db)):
         INNER JOIN album_artists aa ON ab.id = aa.album_id
         INNER JOIN artists at ON aa.artist_id = at.id
         WHERE ab.id = :album_id
-        LIMIT 1
+        ORDER BY at.name
     """)
-    result = db.execute(query, {"album_id": album_id}).fetchone()
+    result = db.execute(query, {"album_id": album_id})
+    rows = result.fetchall()
 
-    if not result:
-        raise HTTPException(status_code=404, detail="Playlist not found")
+    if not rows:
+        raise HTTPException(status_code=404, detail="Album not found")
+
+    # Get album basic info from first row
+    first_row = rows[0]
+    album_id = first_row[0]
+    album_name = first_row[1]
+    cover_image_url = first_row[2]
+    release_date = first_row[3]
+
+    # Aggregate all artists for this album
+    artist_names = []
+    artist_ids = []
+    
+    for row in rows:
+        artist_names.append(row[4])  # artist name
+        artist_ids.append(row[5])    # artist id
 
     return AlbumResponse(
-            id=result[0],
-            name=result[1],
-            cover_image_url=result[2],
-            release_date=result[3],
-            artist_name=result[4],
-            artist_id=result[5]
-        )
+        id=album_id,
+        name=album_name,
+        cover_image_url=cover_image_url,
+        release_date=release_date,
+        artist_name=", ".join(artist_names),
+        artist_id=", ".join(artist_ids)
+    )
 
 @router.get("/album/{album_id}/songs", response_model=List[TrackResponse])
 def get_album_songs(album_id: str, db: Session = Depends(get_db)):
     query = text("""
-        SELECT s.track_id, s.track_name, at.id AS artist_id, at.name AS artist_name, ab.id AS album_id, ab.name AS album_name,
+        SELECT s.track_id, s.track_name, at.id AS artist_id, at.name AS artist_name, 
+               ab.id AS album_id, ab.name AS album_name,
                s.duration_ms, s.track_image_url
         FROM songs s
         INNER JOIN albums ab ON ab.id = s.album_id
         INNER JOIN artists at ON at.id = s.artist_id
         WHERE ab.id = :album_id
+        ORDER BY s.track_id, at.name
     """)
     result = db.execute(query, {"album_id": album_id})
     rows = result.fetchall()
@@ -369,19 +376,45 @@ def get_album_songs(album_id: str, db: Session = Depends(get_db)):
     if not rows:
         raise HTTPException(status_code=404, detail="No songs found in this album")
 
+    # Aggregate artists by track (same logic as your playlist endpoint)
+    track_map = defaultdict(lambda: {
+        "id": None,
+        "title": None,
+        "artist_id": set(),
+        "artists": set(),
+        "album_id": None,
+        "album": None,
+        "duration": None,
+        "cover_url": None,
+        "date_added": None,
+    })
+
+    for row in rows:
+        track_id = row[0]
+        track = track_map[track_id]
+        track["id"] = track_id
+        track["title"] = row[1]
+        track["artist_id"].add(row[2])
+        track["artists"].add(row[3])
+        track["album_id"] = row[4]
+        track["album"] = row[5]
+        track["duration"] = format_duration(row[6])
+        track["cover_url"] = row[7]
+        track["date_added"] = None
+
     return [
         TrackResponse(
-            id=row[0],
-            title=row[1],
-            artist_id=row[2],
-            artist=row[3],
-            album_id=row[4],
-            album=row[5],
-            duration=format_duration(row[6]),
-            cover_url=row[7],
-            date_added=None
+            id=track["id"],
+            title=track["title"],
+            artist_id=", ".join(sorted(track["artist_id"])),
+            artist=", ".join(sorted(track["artists"])),
+            album_id=track["album_id"],
+            album=track["album"],
+            duration=track["duration"],
+            cover_url=track["cover_url"],
+            date_added=track["date_added"].isoformat() if track["date_added"] else None
         )
-        for row in rows
+        for track in track_map.values()
     ]
 
 @router.post("/user/add_track_to_playlist")
@@ -473,12 +506,18 @@ def get_artist_by_id(artist_id: str, db: Session = Depends(get_db)):
 @router.get("/artist/{artist_id}/songs", response_model=List[TrackResponse])
 def get_artist_songs(artist_id: str, db: Session = Depends(get_db)):
     query = text("""
-        SELECT s.track_id, s.track_name, at.id AS artist_id, at.name AS artist_name, ab.id AS album_id, ab.name AS album_name,
+        SELECT s.track_id, s.track_name, at.id AS artist_id, at.name AS artist_name, 
+               ab.id AS album_id, ab.name AS album_name,
                s.duration_ms, s.track_image_url
         FROM songs s
         INNER JOIN artists at ON at.id = s.artist_id
         INNER JOIN albums ab ON ab.id = s.album_id
-        WHERE at.id = :artist_id
+        WHERE s.track_id IN (
+            SELECT DISTINCT s2.track_id 
+            FROM songs s2 
+            WHERE s2.artist_id = :artist_id
+        )
+        ORDER BY s.track_id, at.name
     """)
     result = db.execute(query, {"artist_id": artist_id})
     rows = result.fetchall()
@@ -486,19 +525,45 @@ def get_artist_songs(artist_id: str, db: Session = Depends(get_db)):
     if not rows:
         raise HTTPException(status_code=404, detail="No songs found for this artist")
 
+    # Aggregate artists by track (same logic as album/playlist endpoints)
+    track_map = defaultdict(lambda: {
+        "id": None,
+        "title": None,
+        "artist_id": set(),
+        "artists": set(),
+        "album_id": None,
+        "album": None,
+        "duration": None,
+        "cover_url": None,
+        "date_added": None,
+    })
+
+    for row in rows:
+        track_id = row[0]
+        track = track_map[track_id]
+        track["id"] = track_id
+        track["title"] = row[1]
+        track["artist_id"].add(row[2])
+        track["artists"].add(row[3])
+        track["album_id"] = row[4]
+        track["album"] = row[5]
+        track["duration"] = format_duration(row[6])
+        track["cover_url"] = row[7]
+        track["date_added"] = None
+
     return [
         TrackResponse(
-            id=row[0],
-            title=row[1],
-            artist_id=row[2],
-            artist=row[3],
-            album_id=row[4],
-            album=row[5],
-            duration=format_duration(row[6]),
-            cover_url=row[7],
-            date_added=None
+            id=track["id"],
+            title=track["title"],
+            artist_id=", ".join(sorted(track["artist_id"])),
+            artist=", ".join(sorted(track["artists"])),
+            album_id=track["album_id"],
+            album=track["album"],
+            duration=track["duration"],
+            cover_url=track["cover_url"],
+            date_added=track["date_added"].isoformat() if track["date_added"] else None
         )
-        for row in rows
+        for track in track_map.values()
     ]
 
 ### Search API
@@ -955,15 +1020,19 @@ def update_last_played(
     if not entry:
         raise HTTPException(status_code=403, detail="Item is not in user's library")
 
-    entry.last_played = datetime.now(timezone.utc)
+    asia_time = datetime.now(ASIA_TIMEZONE)
+    entry.last_played = asia_time.replace(tzinfo=None)
+    
     db.commit()
     return {"message": f"Updated last_played for item {item_id}"}
 
 
+# Corrected Gemini configuration
 API_KEY = os.getenv("GEMINI_API_KEY")
-from google import genai
+import google.generativeai as genai
 
-client = genai.Client(api_key=API_KEY)
+genai.configure(api_key=API_KEY)
+
 @router.post("/ask")
 async def ask_gemini(prompt: str = Form(...)):
     user_prompt = prompt.strip()
@@ -997,22 +1066,14 @@ User input:
 \"{user_prompt}\"
 """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
-
     try:
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=final_prompt
-        )
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        response = model.generate_content(final_prompt)
 
-        result = response
-        # print("📦 Gemini response:", result)
-
-        if response.candidates:
+        # Extract the response text
+        if response.candidates and response.candidates[0].content.parts:
             reply = response.candidates[0].content.parts[0].text
             return {"reply": reply}
-        elif result.get("error"):
-            raise HTTPException(status_code=500, detail=result["error"].get("message", "Lỗi không xác định từ Gemini."))
         else:
             raise HTTPException(status_code=500, detail="Gemini không trả về dữ liệu hợp lệ.")
 
