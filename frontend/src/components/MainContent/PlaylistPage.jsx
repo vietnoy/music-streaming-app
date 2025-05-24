@@ -116,7 +116,7 @@ const PlaylistPage = () => {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      navigate("/");
+      window.location.href = "/";
     } catch (err) {
       console.error("Failed to delete playlist:", err);
     }
