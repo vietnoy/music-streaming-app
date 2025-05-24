@@ -27,6 +27,8 @@ from models.user import User
 from .auth_routes import get_current_user
 import requests
 
+ASIA_TIMEZONE = ZoneInfo("Asia/Bangkok")
+
 load_dotenv()
 
 # Configure Cloudinary
@@ -1016,7 +1018,9 @@ def update_last_played(
     if not entry:
         raise HTTPException(status_code=403, detail="Item is not in user's library")
 
-    entry.last_played = datetime.now(timezone.utc)
+    asia_time = datetime.now(ASIA_TIMEZONE)
+    entry.last_played = asia_time.replace(tzinfo=None)
+    
     db.commit()
     return {"message": f"Updated last_played for item {item_id}"}
 
