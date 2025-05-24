@@ -385,7 +385,12 @@ useEffect(() => {
                                     return (
                                       <React.Fragment key={idx}>
                                         {artistId ? (
-                                          <Link to={`/artist/${artistId}`}>{name}</Link>
+                                          <button 
+                                            className="artist-link"
+                                            onClick={() => navigate(`/artist/${artistId}`)}
+                                          >
+                                            {name}
+                                          </button>
                                         ) : (
                                           name
                                         )}
@@ -397,7 +402,12 @@ useEffect(() => {
                               </div>
                             </td>
                             <td className="col-album">
-                              <Link to={`/album/${track.album_id}`}>{track.album}</Link>
+                              <button 
+                                className="album-link"
+                                onClick={() => navigate(`/album/${track.album_id}`)}
+                              >
+                                {track.album}
+                              </button>
                             </td>
                             <td className="col-duration">{track.duration}</td>
                             <td className="col-like">
@@ -597,15 +607,6 @@ useEffect(() => {
                 <span className="album-title">
                   <button 
                     onClick={() => navigate(`/album/${album.id}`)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: '#1db954',
-                      textDecoration: 'underline',
-                      cursor: 'pointer',
-                      padding: 0,
-                      font: 'inherit'
-                    }}
                   >
                     {album.name}
                   </button>

@@ -74,7 +74,7 @@ td.col-date,
 td.col-duration,
 td.col-option {
   /* optional styling for alignment */
-  text-align: left;
+  text-align: left
 }
 
 .play-btn {
@@ -211,26 +211,33 @@ tr:hover .hover-only {
   color: #b3b3b3;
 }
 
-.album-title a {
+.album-title button {
   text-decoration: none;
-  color: white;
+  background: none;
+  border: none;
+  padding: 0px;
   font-weight: 500;
   font-size: 12px;
+  color: white;
 }
 
-.album-title a:hover {
+.album-title button:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 
-.album-artist a {
+.album-artist button {
   text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0px;
   color: #b3b3b3;
   font-size: 12px;
 }
 
-.album-artist a:hover {
+.album-artist button:hover {
   text-decoration: underline;
-  color: #fff;
+  cursor: pointer;
 }
 
 .options-wrapper {
@@ -304,15 +311,18 @@ tr:hover .hover-only {
   margin-bottom: 12px;
 }
 
-.artist-name a {
-  color: white;
-  font-size: 14px;
+.artist-name button {
+  background: none;
+  border: none;
   text-decoration: none;
+  color: rgb(185, 179, 179);
+  padding: 0;
   font-weight: 500;
 }
 
-.artist-name a:hover {
+.artist-name button:hover {
   text-decoration: underline;
+  cursor: pointer;
 }
 
 .artist-link {
