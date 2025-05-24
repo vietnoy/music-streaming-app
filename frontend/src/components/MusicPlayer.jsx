@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp,
+  FaPlay, FaPause, FaStepForward, FaStepBackward, FaVolumeUp, FaVolumeMute,
   FaExpand, FaPlus, FaHeart, FaRegHeart, FaList
 } from "react-icons/fa";
 import "../styles/MusicPlayer.css";
@@ -29,6 +29,8 @@ const MusicPlayer = ({
   const audioRef = useRef(null);
   const playlistRef = useRef(null);
   const [volume, setVolume] = useState(100);
+  const [isMuted, setIsMuted] = useState(false);
+  const [previousVolume, setPreviousVolume] = useState(100);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -70,6 +72,19 @@ const MusicPlayer = ({
     const bar = e.target.getBoundingClientRect();
     const percentage = (e.clientX - bar.left) / bar.width;
     audioRef.current.currentTime = duration * percentage;
+  };
+
+  const handleVolumeClick = () => {
+    if (isMuted) {
+      // Unmute: restore previous volume
+      setVolume(previousVolume);
+      setIsMuted(false);
+    } else {
+      // Mute: store current volume and set to 0
+      setPreviousVolume(volume);
+      setVolume(0);
+      setIsMuted(true);
+    }
   };
 
   return (
@@ -142,14 +157,22 @@ const MusicPlayer = ({
 
       <div className="player-right">
         <div className="volume-control">
-          <FaVolumeUp />
+          <button className="icon-button" onClick={handleVolumeClick}>
+            {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+          </button>
           <input
             type="range"
             min="0"
             max="100"
             value={volume}
             className="volume-slider"
-            onChange={(e) => setVolume(e.target.value)}
+            onChange={(e) => {
+              const newVolume = parseInt(e.target.value);
+              setVolume(newVolume);
+              if (newVolume > 0) {
+                setIsMuted(false);
+              }
+            }}
             style={{
               background: `linear-gradient(to right, #1db954 0%, #1db954 ${volume}%, #444 ${volume}%, #444 100%)`,
             }}
@@ -162,9 +185,9 @@ const MusicPlayer = ({
         >
           <FaList />
         </button>
-        <button className="icon-button" onClick={onToggleFullscreen}>
+        {/* <button className="icon-button" onClick={onToggleFullscreen}>
           <FaExpand />
-        </button>
+        </button> */}
       </div>
     </div>
   );
