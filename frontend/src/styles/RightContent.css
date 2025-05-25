@@ -12,9 +12,27 @@
   background-color: #121212;
   border-radius: 10px;
   overflow: hidden;
-  /* overflow-y: auto; */
+  overflow-y: auto;
   margin: 0px 10px 10px 0px;
 }
+
+.right-content-cover::-webkit-scrollbar {
+  width: 8px;
+}
+
+.right-content-cover::-webkit-scrollbar-thumb {
+  background-color: #404040;
+  border-radius: 4px;
+}
+
+.right-content-cover::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+
+.right-content-cover::-webkit-scrollbar-track {
+  background-color: #121212;
+}
+
 
   .overlay-content {
     position: relative;
