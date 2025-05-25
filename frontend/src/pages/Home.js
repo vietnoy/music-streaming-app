@@ -19,8 +19,17 @@ const Home = () => {
     const [userPlaylists, setUserPlaylists] = useState([]);
     const [leftBar, setLeftBar] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
     const { currentSong, isPlaying, playSong, stop, nextSong, prevSong } =
         usePlayer();
+
+    const showMockup = () => {
+        setIsVisible(true);
+    };
+
+    const hideMockup = () => {
+        setIsVisible(false);
+    };
 
     useEffect(() => {
         const checkIfMobile = () => {
@@ -148,23 +157,30 @@ const Home = () => {
                 >
                     <Outlet />
                 </div>
-                <RightContent currentSong={currentSong} />
+                {isVisible && <RightContent currentSong={currentSong} />}
             </div>
 
             <MusicPlayer
                 currentSong={currentSong}
                 isPlaying={isPlaying}
-                onPlayPause={() => {
+                onPlayPause={(e) => {
+                    e.stopPropagation();
                     if (isPlaying) stop();
                     else playSong(currentSong);
                 }}
+                isVisible={isVisible}
+                showMockup={showMockup}
+                hideMockup={hideMockup}
                 onNext={nextSong}
                 onPrev={prevSong}
                 likedTrackIds={likedTrackIds}
                 userPlaylists={userPlaylists}
                 onToggleLike={handleToggleLike}
                 onAddTrackToPlaylist={handleAddTrackToPlaylist}
-                onToggleFullscreen={() => alert("Fullscreen not implemented")}
+                onToggleFullscreen={(e) => {
+                    e.stopPropagation();
+                    alert("Fullscreen not implemented");
+                }}
             />
         </div>
     );
