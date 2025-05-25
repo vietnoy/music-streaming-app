@@ -65,6 +65,12 @@ const MainContent = () => {
     };
 
     fetchPlaylists();
+
+    const handlePlaylistUpdate = () => {
+      fetchPlaylists();
+    };
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
   }, [userId]);
 
   return (

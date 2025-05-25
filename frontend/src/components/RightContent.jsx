@@ -78,6 +78,13 @@ const RightContent = ({ currentSong, isQueueVisible }) => {
     };
 
     if (userId) fetchUserPlaylists();
+
+    // Add event listener for playlist updates
+    const handlePlaylistUpdate = () => {
+      fetchUserPlaylists();
+    };
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
   }, [userId]);
 
   useEffect(() => {

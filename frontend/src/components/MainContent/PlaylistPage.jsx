@@ -114,7 +114,7 @@ const PlaylistPage = () => {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      window.dispatchEvent(new Event("playlistDeleted"));
+      window.dispatchEvent(new Event("playlistUpdated"));
       navigate("/");
     } catch (err) {
       console.error("Failed to delete playlist:", err);
@@ -135,6 +135,7 @@ const PlaylistPage = () => {
       });
       setShowEditModal(false);
       fetchPlaylist();
+      window.dispatchEvent(new Event("playlistUpdated"));
     } catch (err) {
       console.error("Failed to update playlist:", err);
     }

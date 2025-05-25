@@ -123,6 +123,7 @@ const ArtistPage = () => {
       });
       setIsAdded(true);
       console.log("Artist added to library");
+      window.dispatchEvent(new Event('artistUpdated')); 
     } catch (err) {
       console.error(`Error while adding to user library: ${err}`);
     }
@@ -136,6 +137,7 @@ const ArtistPage = () => {
       });
       setIsAdded(false);
       console.log("Artist removed from library");
+      window.dispatchEvent(new Event('artistUpdated')); 
     } catch (err) {
       console.error(`Error while removing artist from library: ${err}`);
     }
@@ -199,6 +201,23 @@ const ArtistPage = () => {
         setIsAdded(isInLibrary);
       })
       .catch(console.error);
+
+    // Add event listener for playlist updates
+    const handlePlaylistUpdate = () => {
+      authFetch(`${API_BASE}/api/music/user_playlist`)
+        .then((res) => res.json())
+        .then((data) => {
+          const filtered = data.filter((pl) => pl.name !== "Liked Songs" && pl.type === "playlist");
+          setUserPlaylists(filtered);
+          
+          // Check if artist is added to library
+          const isInLibrary = data.some(item => item.id === artist.id);
+          setIsAdded(isInLibrary);
+        })
+        .catch(console.error);
+    };
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
   }, [userId, artist]);
 
   // Handle clicking outside menu

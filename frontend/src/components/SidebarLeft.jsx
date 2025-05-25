@@ -108,11 +108,26 @@ const SidebarLeft = () => {
   }, []);
 
   useEffect(() => {
-    const handlePlaylistDeleted = () => {
+    const handlePlaylistUpdate = () => {
       fetchPlaylists();
     };
-    window.addEventListener('playlistDeleted', handlePlaylistDeleted);
-    return () => window.removeEventListener('playlistDeleted', handlePlaylistDeleted);
+    const handleArtistUpdated = () => {
+      fetchPlaylists();
+    };
+    const handleAlbumUpdated = () => {
+      fetchPlaylists();
+    };
+
+
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    window.addEventListener('artistUpdated', handleArtistUpdated);
+    window.addEventListener('albumUpdated', handleAlbumUpdated);
+
+    return () => {
+      window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
+      window.removeEventListener('artistUpdated', handleArtistUpdated);
+      window.removeEventListener('albumUpdated', handleAlbumUpdated);
+    };
   }, []);
 
   useEffect(() => {
@@ -193,13 +208,13 @@ const SidebarLeft = () => {
 
       if (!res.ok) throw new Error("Failed to create playlist");
 
-      // alert("Playlist created!");
       setShowCreateForm(false);
       setNewPlaylist({ name: "", description: "", coverImage: null });
       fetchPlaylists();
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event("playlistUpdated"));
     } catch (err) {
       console.error("Create playlist error:", err);
-      // alert("Failed to create playlist");
     }
   };
 

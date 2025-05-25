@@ -52,6 +52,13 @@ const Home = () => {
     };
 
     if (userId) fetchPlaylists();
+
+    // Add event listener for playlist updates
+    const handlePlaylistUpdate = () => {
+      fetchPlaylists();
+    };
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
   }, [userId]);
 
   const handleToggleLike = async () => {

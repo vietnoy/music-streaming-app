@@ -128,6 +128,7 @@ const AlbumPage = () => {
       });
       setIsAdded(true);
       console.log("Album added to library as:", albumType);
+      window.dispatchEvent(new Event('albumUpdated'));
     } catch (err) {
       console.error(`Error while adding to user library: ${err}`);
     }
@@ -141,6 +142,7 @@ const AlbumPage = () => {
       });
       setIsAdded(false);
       console.log("Album removed from library");
+      window.dispatchEvent(new Event('albumUpdated'));
     } catch (err) {
       console.error(`Error while removing album from library: ${err}`);
     }
@@ -217,6 +219,13 @@ const AlbumPage = () => {
     };
   
     fetchUserPlaylists();
+
+    // Add event listener for playlist updates
+    const handlePlaylistUpdate = () => {
+      fetchUserPlaylists();
+    };
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
   }, [userId, album]);
 
   // Handle clicking outside menu
