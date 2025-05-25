@@ -569,3 +569,75 @@ tr.playing .play-icon-row {
       transform: translateY(0);
     }
   }
+
+  .delete-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .delete-modal {
+    background-color: #282828;
+    padding: 24px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .delete-modal h3 {
+    color: #fff;
+    margin: 0 0 16px 0;
+    font-size: 24px;
+  }
+
+  .delete-modal p {
+    color: #b3b3b3;
+    margin: 0 0 24px 0;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .delete-modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .delete-modal-buttons button {
+    padding: 12px 24px;
+    border-radius: 20px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .delete-modal-buttons .delete-button {
+    background-color: #e91429;
+    color: white;
+  }
+
+  .delete-modal-buttons .delete-button:hover {
+    background-color: #f15b6c;
+    transform: scale(1.04);
+  }
+
+  .delete-modal-buttons .cancel-button {
+    background-color: transparent;
+    color: #fff;
+    border: 1px solid #727272;
+  }
+
+  .delete-modal-buttons .cancel-button:hover {
+    background-color: #404040;
+    transform: scale(1.04);
+  }

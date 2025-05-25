@@ -16,6 +16,7 @@ const PlaylistPage = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditDropdown, setShowEditDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editFields, setEditFields] = useState({
     name: "",
     description: "",
@@ -108,15 +109,13 @@ const PlaylistPage = () => {
   };
 
   const handleDeletePlaylist = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete this playlist?");
-    if (!confirmed) return;
-    
     try {
       await authFetch(`${API_BASE}/api/music/user_playlist/${playlistId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      window.location.href = "/";
+      window.dispatchEvent(new Event("playlistDeleted"));
+      navigate("/");
     } catch (err) {
       console.error("Failed to delete playlist:", err);
     }
@@ -257,7 +256,7 @@ const PlaylistPage = () => {
                     Edit Info
                   </button>
                   <button onClick={() => {
-                    handleDeletePlaylist();
+                    setShowDeleteModal(true);
                     setShowEditDropdown(false);
                   }}>
                     Delete Playlist
@@ -387,6 +386,32 @@ const PlaylistPage = () => {
           })}
         </tbody>
       </table>
+
+      {showDeleteModal && (
+        <div className="delete-modal-overlay">
+          <div className="delete-modal">
+            <h3>Delete Playlist</h3>
+            <p>Are you sure you want to delete "{playlist?.name}"?</p>
+            <div className="delete-modal-buttons">
+              <button 
+                className="delete-button"
+                onClick={() => {
+                  handleDeletePlaylist();
+                  setShowDeleteModal(false);
+                }}
+              >
+                Delete
+              </button>
+              <button 
+                className="cancel-button"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showEditModal && (
         <div className="edit-playlist-modal">

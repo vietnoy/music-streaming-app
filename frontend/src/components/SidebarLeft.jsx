@@ -108,6 +108,14 @@ const SidebarLeft = () => {
   }, []);
 
   useEffect(() => {
+    const handlePlaylistDeleted = () => {
+      fetchPlaylists();
+    };
+    window.addEventListener('playlistDeleted', handlePlaylistDeleted);
+    return () => window.removeEventListener('playlistDeleted', handlePlaylistDeleted);
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowSortDropdown(false);
@@ -185,13 +193,13 @@ const SidebarLeft = () => {
 
       if (!res.ok) throw new Error("Failed to create playlist");
 
-      alert("Playlist created!");
+      // alert("Playlist created!");
       setShowCreateForm(false);
       setNewPlaylist({ name: "", description: "", coverImage: null });
       fetchPlaylists();
     } catch (err) {
       console.error("Create playlist error:", err);
-      alert("Failed to create playlist");
+      // alert("Failed to create playlist");
     }
   };
 
